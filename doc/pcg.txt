@@ -1,0 +1,127 @@
+PCG Notes
+===============================================================================
+
+A lot of this is based on the X68000 Technical Data Book.
+
+Tile VRAM =====================================================================
+
+Tile graphics data is stored at 0xEB8000, and is of size 0x4000.
+
+Sprites =======================================================================
+
+Sprite table begins at 0xEB0000, and each sprite is 4 bytes.
+Maximum 128 sprites.
+
+Each sprite:
+0x0:
+---- ---8 7654 3210   X Position
+0x2:
+---- ---8 7654 3210   Y position
+0x4:
+FE-- ---- ---- ----   V/H Reflect
+---- BA98 ---- ----   Color
+---- ---- 7654 3210   Pattern
+0x6:
+---- ---- ---- --10   Layer Priority
+
+Priority between sprites and PCG backgrounds:
+
+Sprite offset +06 is priority, or "PRW" as Inside X68000 calls it.
+
+PRW     Layering
+----------------
+0 0     Sprites are not drawn.
+0 1     Sprites are behind both tile layers.
+1 0     Sprites are behind BG0, but in front of BG1.
+1 1     Sprites are above both BG layers.
+
+See the struct X68kPcgSprite.
+
+Backgrounds ===================================================================
+
+Nametables begin at 0xEBC000 and 0xEBE000 for BG0 and BG1, respectively.
+Scroll registers are at EB0800
+
+Background scroll registers are at:
+BG0: 0xEB0800
+BG1: 0xEB0804
+
+Each scroll register:
+0x0:
+---- --XX XXXX XXXX   X position
+0x2:
+---- --YY YYYY YYYY   Y position
+
+BG control register is at 0xEB0808.
+
+BGControl register:
+---- --9- ---- ---- Display Enable. Turn off to modify registers.
+---- ---- --54 ---- BG1 textsel - nametable mapping (0xEBC000 vs 0xEBE000)
+---- ---- ---- 3--- BG1 ON
+---- ---- ---- -21- BG0 textsel - nametable mapping (0xEBC000 vs 0xEBE000)
+---- ---- ---- ---0 BG0 ON
+
+Control Register ==============================================================
+
+The control register is at 0xEB080A.
+
+0x0:
+---- ---- 7654 3210 H total
+0x2:
+---- ---- --54 3210 H disp
+0x4:
+---- ---- 7654 3210 V disp
+0x6:
+---- ---- ---4 ---- L/H        15KHz (0), 31Khz (1)
+---- ---- ---- 32-- V-res      256-line mode (00), 512-line mode (01)
+---- ---- ---- --10 H-res      256-dot mode (00), 512-dot mode (01)
+
+Tile size (8x8 or 16x16) is influenced by HRES in 0xEB0810
+    Display mode    Screen size     Layer size          Tile size
+    register HRES
+    bits
+    0 0             256 x 256 dots  512 x 512 dots      8 x 8 dots
+    0 1             512 x 512 dots  1024 x 1024 dots    16 x 16 dots
+
+Sample configs from pg 236 of Inside X68000:
+
+        [    Hi-resolution    ] [   Low-resolution    ]
+        512x512 512x256 256x256 512x512 512x256 256x256
+H-Total     $FF     $FF     $FF     $FF     $FF     $25
+H-Disp      $15     $15     $0A     $09     $09     $04
+V-Disp      $28     $28     $28     $10     $10     $10
+Flags       $15     $11     $10     $05     $01     $00
+BG planes     1       1       2       1       1       2
+
+Notes from pg234 of Inside X68000:
+
+0x0 H-total:
+
+* Bit 0 (LSB) should be '1'.
+
+H-total should be the same value as the CRTC R00 (Htotal) in low-resolution
+mode (256 x 256), otherwise it should be set to $FF. As with CRTC R00, make
+sure that the value set for this register is an odd number.
+
+0x02 H-disp:
+
+Set by taking the value of R02 from CRTC and adding four.
+
+0x04 V-disp:
+
+Set by taking the value of R06 from CRTC.
+
+Also, replicate CRTC value R20's lower 8 bits in the mode register at $EB0810.
+
+
+Background nametables =========================================================
+
+Layout data for the Background planes start at 0xEBC000 and 0xEBE000 for BG0 and
+BG1, respectively, and are sied 0x2000.
+
+Tile format:
+f--- ---- ---- ---- y flip
+-e-- ---- ---- ---- x flip
+--dc ---- ---- ---- unused
+---- ba98 ---- ---- color
+---- ---- 7654 4310 pattern #
