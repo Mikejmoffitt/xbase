@@ -44,7 +44,7 @@ typedef enum __attribute__((packed)) XBPcgMode;
 {
 	XB_PCG_MODE_LH = 0x0010,  // Set for 31khz (line double) mode.
 	XB_PCG_MODE_VMODE = 0x0004,  // Set for 512-line mode.
-	XB_PCG_MODE_HMODE = 0x0001,  // Set for 512-dot mode.
+	XB_PCG_MODE_HMODE = 0x0001,  // Set for 512-dot mode; enables 16x16 tiles.
 } XBPcgMode;
 
 typedef struct XBPcgConfig
@@ -57,7 +57,7 @@ typedef struct XBPcgConfig
 	uint16_t hdisp;  // 0xEB080C
 	// V-disp is set by taking the value of R06 from CRTC.
 	uint16_t vdisp;  // 0xEB080E
-	// mode is set by taking the lower 8 bits from CRTC R20.
+	// Mode is generally set by taking the lower 8 bits from CRTC R20.
 	XBPcgMode mode;  // 0xEB0810
 } XBPcgConfig;
 
@@ -89,7 +89,7 @@ static inline void xb_pcg_set_bg1_yscroll(uint16_t y);
 // other words, write to this during vertical blank).
 static inline volatile X68kPcgSprite *xb_pcg_get_sprite(uint8_t idx);
 static inline void xb_pcg_set_sprite(uint8_t idx, int16_t x,
-                                       int16_t y, uint16_t attr, uint16_t prio);
+                                     int16_t y, uint16_t attr, uint16_t prio);
 static inline void xb_pcg_clear_sprites(void);
 
 // Optional interface for placing sprites without regard to slot number.
@@ -99,9 +99,9 @@ void xb_pcg_add_sprite(int16_t x, int16_t y, uint16_t attr, uint16_t prio);
 // once you've finished drawing sprites.
 void xb_pcg_finish_sprites(void);
 
-
-
-
+// Helper functions for putting tiles in PCG VRAM.
+void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
+                              uint16_t num_tiles);
 
 // Static implementations ======================================================
 
@@ -156,7 +156,7 @@ static inline volatile X68kPcgSprite *xb_pcg_get_sprite(uint8_t idx)
 }
 
 static inline void xb_pcg_set_sprite(uint8_t idx, int16_t x,
-                                       int16_t y, uint16_t attr, uint16_t prio)
+                                     int16_t y, uint16_t attr, uint16_t prio)
 {
 	volatile X68kPcgSprite *spr = xb_pcg_get_sprite(idx);
 	spr->x = x + 16;
