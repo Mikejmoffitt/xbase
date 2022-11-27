@@ -72,6 +72,8 @@ typedef enum ConvMode
 static FILE *sf_pcg_out = NULL;  // XSP or SP PCG sprite data.
 static FILE *sf_frm_out = NULL;  // XSP_FRM_DAT data.
 static FILE *sf_ref_out = NULL;  // XPS_REF_DAT data.
+
+static uint8_t *s_pcg_dat;  // Allocated to the max sprite count.
 static int s_pcg_count = 0;
 static uint32_t s_frm_offs = 0;
 
@@ -82,7 +84,7 @@ static bool init_file_handles(ConvMode mode, const char *outname)
 
 	char fname_buffer[256];
 
-	snprintf(fname_buffer, sizeof(fname_buffer), "%s.pcg", outname);
+	snprintf(fname_buffer, sizeof(fname_buffer), (mode == CONV_MODE_XOBJ) ? "%s.xsp" : "%s.sp", outname);
 	sf_pcg_out = fopen(fname_buffer, "wb");
 	if (!sf_pcg_out)
 	{
@@ -379,10 +381,25 @@ static void add_frm_dat(int16_t vx, int16_t vy, uint16_t pt, uint16_t rv)
 }
 
 // src points to a 128 byte chunk of PCG data
-static void add_pcg_dat(uint8_t *src)
+static void add_pcg_dat(const uint8_t *src)
 {
-	fwrite(src, 1, 128, sf_pcg_out);
+	memcpy(&s_pcg_dat[s_pcg_count * 128], src, 128);
+//	fwrite(src, 1, 128, sf_pcg_out);
 	s_pcg_count++;
+}
+
+// src points to a 128 byte chunk of PCG data
+// returns 0-65535 if PCG was found in PCG bank
+// otherwise returns -1
+// TODO: Consider storing hashes of the tiles alongside this and eliminating s_pcg_dat
+static int find_pcg_dat(const uint8_t *src)
+{
+	for (int i = 0; i < s_pcg_count; i++)
+	{
+		const uint8_t *candidate = &s_pcg_dat[i * 128];
+		if (memcmp(candidate, src, 128) == 0) return i;
+	}
+	return -1;
 }
 
 // Hunt top-down, then left-right, for the first viable sprite.
@@ -523,8 +540,11 @@ static void chop_sprite(uint8_t *imgdat, int iw, int ih, ConvMode mode, ConvOrig
 	// 4) Erase the 16x16 image data from imgdat (set it to zero)
 	// 5) Increment s_frm_offs.
 
-//	render_region(imgdat, iw, ih, sx, sy, sw, sh);
+	render_region(imgdat, iw, ih, sx, sy, sw, sh);
+
 	int clip_x, clip_y;
+	int last_vx = 0;
+	int last_vy = 0;
 	while (claim(imgdat, iw, ih, sx, sy, sw, sh, &clip_x, &clip_y))
 	{
 		sp_count++;
@@ -537,19 +557,21 @@ static void chop_sprite(uint8_t *imgdat, int iw, int ih, ConvMode mode, ConvOrig
 		clip_8x8_tile(imgdat, iw, clip_x + 8, clip_y, limx, limy, &pcg_data[32 * 2]);
 		clip_8x8_tile(imgdat, iw, clip_x + 8, clip_y + 8, limx, limy, &pcg_data[32 * 3]);
 
-		int pt_idx = -1;
-		// TODO: PCG search to get pt_idx for extant data.
+		int pt_idx = find_pcg_dat(pcg_data);
 		if (pt_idx < 0)
 		{
-			add_pcg_dat(pcg_data);
 			pt_idx = s_pcg_count;
+			add_pcg_dat(pcg_data);
 		}
 
 		if (mode != CONV_MODE_XOBJ) continue;
 
-		const int vx = (clip_x % sw) - ox;
-		const int vy = (clip_y % sh) - oy;
-		add_frm_dat(vx, vy, pt_idx, 0);
+		const int vx = ((clip_x % sw) - ox);
+		const int vy = ((clip_y % sh) - oy);
+		add_frm_dat(vx - last_vx, vy - last_vy, pt_idx, 0);
+//		render_region(imgdat, iw, ih, sx, sy, sw, sh);
+		last_vx = vx;
+		last_vy = vy;
 	}
 
 //	printf("Used %d sprites\n", sp_count);
@@ -602,6 +624,9 @@ int main(int argc, char **argv)
 	if (!init_file_handles(mode, outname)) goto finished;
 
 	// Chop sprites out of the image data.
+
+	s_pcg_dat = malloc(128 * 65536);  // Max 65536 PCG sprites.
+
 	const int sprite_rows = png_h / frame_h;
 	const int sprite_columns = png_w / frame_w;
 	printf("%d x %d cells --> %d metasprites\n", sprite_columns, sprite_rows, sprite_columns * sprite_rows);
@@ -614,9 +639,21 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (mode == CONV_MODE_SP)
+	{
+		printf("Used %d PCG tiles.\n", s_pcg_count);
+	}
+	else
+	{
+		printf("Used %d PCG tiles for %d sprites.\n", s_pcg_count, s_frm_offs);
+	}
+
+	fwrite(s_pcg_dat, 128, s_pcg_count, sf_pcg_out);
 	fclose(sf_pcg_out);
 	if (sf_frm_out) fclose(sf_frm_out);
 	if (sf_ref_out) fclose(sf_ref_out);
+
+	free(s_pcg_dat);
 
 finished:
 	free(imgdat);
