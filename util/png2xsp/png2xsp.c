@@ -117,6 +117,15 @@ static bool init_file_handles(ConvMode mode, const char *outname)
 // Motorola 68000, and therefore XSP, uses big-endian data.
 static void fwrite_uint16be(uint16_t val, FILE *f)
 {
+	uint8_t buf[2];
+	buf[0] = (val >> 8) & 0xFF;
+	buf[1] = val & 0xFF;
+	fwrite(buf, 1, sizeof(buf), f);
+	fflush(f);
+}
+
+static void fwrite_int16be(int16_t val, FILE *f)
+{
 	fputc((val >> 8) & 0xFF, f);
 	fputc(val & 0xFF, f);
 }
@@ -287,6 +296,7 @@ static ConvOrigin conv_origin_from_args(int argc, char **argv)
 			printf("Warning: Unhandled Y origin argument '%c'.\n", argstr[1]);
 			return ret;
 	}
+
 	return ret;
 }
 
@@ -328,7 +338,7 @@ static bool check_arg_sanity(int argc, char **argv)
 }
 
 // Free after usage. NULL on error.
-static uint8_t* load_png_data(const char *fname,
+static uint8_t *load_png_data(const char *fname,
                               unsigned int *png_w, unsigned int *png_h)
 {
 	uint8_t *ret;
@@ -360,10 +370,11 @@ static void add_ref_dat(uint16_t sp_count, uint32_t frm_offs)
 
 static void add_frm_dat(int16_t vx, int16_t vy, uint16_t pt, uint16_t rv)
 {
-	fwrite_uint16be(vx, sf_frm_out);
-	fwrite_uint16be(vy, sf_frm_out);
+	fwrite_int16be(vx, sf_frm_out);
+	fwrite_int16be(vy, sf_frm_out);
 	fwrite_uint16be(pt, sf_frm_out);
 	fwrite_uint16be(rv, sf_frm_out);
+//	printf("frm: %04d %04d %04d %04d \t$%04X%04X%04X%04X\n", vx, vy, pt, rv, vx, vy, pt, rv);
 	s_frm_offs += 8;
 }
 
@@ -512,7 +523,7 @@ static void chop_sprite(uint8_t *imgdat, int iw, int ih, ConvMode mode, ConvOrig
 	// 4) Erase the 16x16 image data from imgdat (set it to zero)
 	// 5) Increment s_frm_offs.
 
-	render_region(imgdat, iw, ih, sx, sy, sw, sh);
+//	render_region(imgdat, iw, ih, sx, sy, sw, sh);
 	int clip_x, clip_y;
 	while (claim(imgdat, iw, ih, sx, sy, sw, sh, &clip_x, &clip_y))
 	{
@@ -541,8 +552,7 @@ static void chop_sprite(uint8_t *imgdat, int iw, int ih, ConvMode mode, ConvOrig
 		add_frm_dat(vx, vy, pt_idx, 0);
 	}
 
-	printf("Used %d sprites\n", sp_count);
-	printf("\n");
+//	printf("Used %d sprites\n", sp_count);
 
 	if (mode != CONV_MODE_XOBJ) return;
 	add_ref_dat(sp_count, frm_offs);
@@ -599,7 +609,7 @@ int main(int argc, char **argv)
 	{
 		for (int x = 0; x < sprite_columns; x++)
 		{
-			printf("FRM %d\n", x + y * sprite_columns + 1);
+//			printf("FRM %d\n", x + y * sprite_columns + 1);
 			chop_sprite(imgdat, png_w, png_h, mode, origin, x * frame_w, y * frame_h, frame_w, frame_h);
 		}
 	}
