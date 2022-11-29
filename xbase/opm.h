@@ -51,13 +51,13 @@ typedef enum __attribute__((packed)) XBOpmReg
 
 typedef enum __attribute__((packed)) XBOpmTimerFlag
 {
-	OPM_TIMER_FLAG_CSM       0x80
-	OPM_TIMER_FLAG_F_RESET_B 0x20
-	OPM_TIMER_FLAG_F_RESET_A 0x10
-	OPM_TIMER_FLAG_IRQ_EN_B  0x08
-	OPM_TIMER_FLAG_IRQ_EN_A  0x04
-	OPM_TIMER_FLAG_LOAD_B    0x02
-	OPM_TIMER_FLAG_LOAD_A    0x01
+	OPM_TIMER_FLAG_CSM       = 0x80,
+	OPM_TIMER_FLAG_F_RESET_B = 0x20,
+	OPM_TIMER_FLAG_F_RESET_A = 0x10,
+	OPM_TIMER_FLAG_IRQ_EN_B  = 0x08,
+	OPM_TIMER_FLAG_IRQ_EN_A  = 0x04,
+	OPM_TIMER_FLAG_LOAD_B    = 0x02,
+	OPM_TIMER_FLAG_LOAD_A    = 0x01,
 } XBOpmTimerFlag;
 
 typedef enum __attribute__((packed)) XBOpmLfoWave

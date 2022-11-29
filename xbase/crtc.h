@@ -11,13 +11,13 @@ Display Timing
 
 In a CRTC, display timings are not typically changed in real-time, and all of
 it is set at once. Accordingly, the timings are set in a configuration struct,
-which is passed in to xb_crtc_init(). It is OK to call this multiple times to
+which is passed in to xb_crtc_set_timing(). It is OK to call this multiple times to
 support multiple configurations.
 
 Example:
 
     XBCrtcTimingCfg crtc_config = { ... }.
-    xb_crtc_init(&crtc_config);
+    xb_crtc_set_timing(&crtc_config);
 
 Scroll Registers
 ----------------

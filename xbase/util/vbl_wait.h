@@ -1,7 +1,7 @@
 #ifndef XBASE_UTIL_VBL_WAIT_H
 #define XBASE_UTIL_VBL_WAIT_H
 
-#include <stbool.h>
+#include <stdbool.h>
 
 // Registers a simple interrupt handler for the vertical blank interval.
 void xb_vbl_wait_init(void);

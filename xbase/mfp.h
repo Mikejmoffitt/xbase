@@ -30,7 +30,7 @@ enum XBMFPInt
 	XB_MFP_INT_KEY_SERIAL_IN_ERROR            = 0x4B,
 	XB_MFP_INT_KEY_SERIAL_IN_BUFFER_FULL      = 0x4C,
 	XB_MFP_INT_TIMER_A                        = 0x4D,
-	XB_MFP_INT_CRTC_IRQ                       = 0x4E,
+	XB_MFP_INT_CRTC                           = 0x4E,
 	XB_MFP_INT_HSYNC                          = 0x4F,
 	XB_MFP_INT_SCC_B_TX_BUFFER_EMPTY          = 0x50,
 	XB_MFP_INT_SCC_B_TX_BUFFER_EMPTY_2        = 0x51,
@@ -112,7 +112,9 @@ uint8_t xb_mfp_read_gpdr(void);
 // Register a user IRQ handler for a user interrupt. It is suggested to pass a
 // value from XBMFPInt for the vector.
 // Register NULL to remove an association.
-void xb_mfp_set_interrupt(uint8_t vector, void (*function)(void));
+// This function is a proper interrupt handler, so please ensure it returns
+// with `rte`. For C functions, use __attribute__(("interrupt")).
+void xb_mfp_set_interrupt(uint8_t vector, void (*interrupt_handler)(void));
 
 // Enable or disable interrupt generation for a vector.
 void xb_mfp_set_interrupt_enable(uint8_t vector, bool enabled);

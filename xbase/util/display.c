@@ -1,10 +1,10 @@
-#include "xb_display.h"
-#include "xbase/vbl.h"
+#include "xbase/util/display.h"
+#include "xbase/mfp.h"
 #include <iocs.h>
 
 static void apply_mode(const XBDisplayMode *mode)
 {
-	xb_crtc_init(&mode->crtc);
+	xb_crtc_set_timing(&mode->crtc);
 	xb_vidcon_init(&mode->vidcon);
 
 #ifdef XB_DISPLAY_512PX_PCG_HACK
@@ -12,15 +12,15 @@ static void apply_mode(const XBDisplayMode *mode)
 	// sprite line buffer. Without this, the right half of the screen may be
 	// filled with randomly colored vertical lines when forcing the PCG to
 	// use 8x8 BG tile pacing in a high resolution mode.
-	static const X68kPcgConfig hires_hack_pcg =
+	static const X68kPcgCfg hires_hack_pcg =
 	{
 		0x00FF, 0x0015, 0x001C, 0x0011
 	};
 
 	xb_pcg_init(&hires_hack_pcg);
+	for (int i = 0; i < 1000; i++) __asm__("nop");
 #endif  // XB_DISPLAY_512PX_PCG_HACK
 
-	xb_vbl_wait_for_vblank();
 	xb_pcg_init(&mode->pcg);
 }
 

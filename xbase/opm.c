@@ -1,5 +1,6 @@
 #include "xbase/opm.h"
 #include "xbase/macro.h"
+#include "xbase/memmap.h"
 
 // Register cache / interface.
 
@@ -8,14 +9,14 @@ static bool s_dirty[0x100];  // If true, corresponding s_reg value needs a copy
 
 static inline void opm_write(uint8_t address, uint8_t data)
 {
-	*(volatile uint8_t *)(XB_OPM_BASE + 1) = (address); \
-	while (opm_status() & 0x80) __asm__ volatile ("nop"); \
-	*(volatile uint8_t *)(XB_OPM_BASE + 3) = (data); \
+	*(volatile uint8_t *)(XB_OPM_BASE + 1) = (address);
+	while (opm_status() & 0x80) __asm__ volatile ("nop");
+	*(volatile uint8_t *)(XB_OPM_BASE + 3) = (data);
 }
 
 static inline void reg_cache_w(uint8_t address, uint8_t data)
 {
-	s+regs[address] = data;
+	s_regs[address] = data;
 	s_dirty[address] = true;
 }
 

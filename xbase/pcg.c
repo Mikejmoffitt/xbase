@@ -1,4 +1,6 @@
-#include "xbase/xb_pcg.h"
+#include "xbase/pcg.h"
+
+#include "xbase/memmap.h"
 
 #include <string.h>
 
@@ -6,7 +8,7 @@ static uint8_t s_spr_next = 0;
 static uint8_t s_spr_count_prev = 0;
 
 static uint16_t s_xb_pcg_ctrl_cache;
-#define XB_PCG_CTRL_R (*(volatile uint16_t *)PCG_BG_CTRL);
+#define XB_PCG_CTRL_R (*(volatile uint16_t *)XB_PCG_BG_CTRL)
 
 /*
 Control:    0xEB0808
@@ -28,7 +30,7 @@ Mode:       0xEB0810
 
 */
 
-void xb_pcg_init(const XBPcgConfig *c)
+void xb_pcg_init(const XBPcgCfg *c)
 {
 	volatile uint16_t *pcg_reg = (volatile uint16_t *)XB_PCG_HTOTAL;
 	pcg_reg[0] = c->htotal;
@@ -88,6 +90,7 @@ void xb_pcg_set_bg0_enable(uint8_t en)
 
 void xb_pcg_add_sprite(int16_t x, int16_t y, uint16_t attr, uint16_t prio)
 {
+	volatile X68kPcgSprite *spr = xb_pcg_get_sprite(s_spr_next);
 	while (s_spr_count_prev > 0)
 	{
 		s_spr_count_prev--;
@@ -106,7 +109,7 @@ void xb_pcg_finish_sprites(void)
 void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
                               uint16_t num_tiles)
 {
-	volatile uint8_t *dest_addr = (volatile uint8_t *)XB_PCG_TILE_DATA;
+	uint8_t *dest_addr = (uint8_t *)XB_PCG_TILE_DATA;
 	dest_addr += (dest_tile * (32));  // 4bpp = 32 bytes per tile.
 	memcpy(dest_addr, source, num_tiles * 32);
 }

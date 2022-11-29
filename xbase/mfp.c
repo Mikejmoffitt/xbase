@@ -38,43 +38,43 @@ uint8_t xb_mfp_read_gpdr(void)
 	return s_mfp->gpdr;
 }
 
-void xb_mfp_set_interrupt(uint8_t vector, void (*function)(void))
+void xb_mfp_set_interrupt(uint8_t vector, void (*interrupt_handler)(void))
 {
-	_iocs_b_intvcs(vector, function);
+	_iocs_b_intvcs(vector, interrupt_handler);
 }
 
 void xb_mfp_set_interrupt_enable(uint8_t vector, bool enabled)
 {
-	if (vector >= XB_MFP_INT_RTC_ALARM && vector <= XB_MFP_INT_RTC_CLOCK)
+	if (vector >= XB_MFP_INT_TIMER_B && vector <= XB_MFP_INT_HSYNC)
 	{
 		// IERA
-		const uint8_t bit = vector - XB_MFP_INT_RTC_ALARM;
-		const uint8_t mask = 1 << bit;
-		if (enabled)
-		{
-			mfp->iera |= mask;
-			mfp->imra |= mask;
-		}
-		else
-		{
-			mfp->iera &= ~mask;
-			mfp->imra &= ~mask;
-		}
-	}
-	else if (vector >= XB_MFP_INT_TIMER_B && vector <= XB_MFP_INT_HSYNC)
-	{
-		// IERB
 		const uint8_t bit = vector - XB_MFP_INT_TIMER_B;
 		const uint8_t mask = 1 << bit;
 		if (enabled)
 		{
-			mfp->ierb |= mask;
-			mfp->imrb |= mask;
+			s_mfp->iera |= mask;
+			s_mfp->imra |= mask;
 		}
 		else
 		{
-			mfp->ierb &= ~mask;
-			mfp->imrb &= ~mask;
+			s_mfp->iera &= ~mask;
+			s_mfp->imra &= ~mask;
+		}
+	}
+	else if (vector >= XB_MFP_INT_RTC_ALARM && vector <= XB_MFP_INT_RTC_CLOCK)
+	{
+		// IERB
+		const uint8_t bit = vector - XB_MFP_INT_RTC_ALARM;
+		const uint8_t mask = 1 << bit;
+		if (enabled)
+		{
+			s_mfp->ierb |= mask;
+			s_mfp->imrb |= mask;
+		}
+		else
+		{
+			s_mfp->ierb &= ~mask;
+			s_mfp->imrb &= ~mask;
 		}
 	}
 }

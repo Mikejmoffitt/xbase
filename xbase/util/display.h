@@ -10,9 +10,9 @@
 
 typedef struct XBDisplayMode
 {
-	XBCrtcConfig crtc;
-	XBPcgConfig pcg;
-	XBVidconConfig vidcon;
+	XBCrtcTimingCfg crtc;
+	XBPcgCfg pcg;
+	XBVidconCfg vidcon;
 } XBDisplayMode;
 
 typedef struct XBDisplay

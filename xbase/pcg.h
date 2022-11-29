@@ -40,14 +40,14 @@ typedef struct
 // Setup =======================================================================
 
 // This should match the lower eight bits of CRTC Register 20.
-typedef enum __attribute__((packed)) XBPcgMode;
+typedef enum __attribute__((packed)) XBPcgMode
 {
 	XB_PCG_MODE_LH = 0x0010,  // Set for 31khz (line double) mode.
 	XB_PCG_MODE_VMODE = 0x0004,  // Set for 512-line mode.
 	XB_PCG_MODE_HMODE = 0x0001,  // Set for 512-dot mode; enables 16x16 tiles.
 } XBPcgMode;
 
-typedef struct XBPcgConfig
+typedef struct XBPcgCfg
 {
 	// H-total should be the same value as the CRTC R00 (Htotal) in low-res
 	// mode (256 x 256), otherwise it should be set to $FF. As with CRTC R00,
@@ -59,9 +59,9 @@ typedef struct XBPcgConfig
 	uint16_t vdisp;  // 0xEB080E
 	// Mode is generally set by taking the lower 8 bits from CRTC R20.
 	XBPcgMode mode;  // 0xEB0810
-} XBPcgConfig;
+} XBPcgCfg;
 
-void xb_pcg_init(const XBPcgConfig *c);
+void xb_pcg_init(const XBPcgCfg *c);
 
 // Turn off the display for faster transfer
 void xb_pcg_set_disp_en(uint8_t en);
@@ -109,7 +109,7 @@ void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
 // small changes or playing around, as it's slower than doing a large DMA.
 static inline void xb_pcg_set_bg0_tile(uint16_t x, uint16_t y, uint16_t attr)
 {
-	volatile uint16_t *nt = (volatile uint16_t *)PCG_BG0_NAME;
+	volatile uint16_t *nt = (volatile uint16_t *)XB_PCG_BG0_NAME;
 	nt += x;
 	nt += (y << 6);
 	*nt = attr;
@@ -117,7 +117,7 @@ static inline void xb_pcg_set_bg0_tile(uint16_t x, uint16_t y, uint16_t attr)
 
 static inline void xb_pcg_set_bg1_tile(uint16_t x, uint16_t y, uint16_t attr)
 {
-	volatile uint16_t *nt = (volatile uint16_t *)PCG_BG1_NAME;
+	volatile uint16_t *nt = (volatile uint16_t *)XB_PCG_BG1_NAME;
 	nt += x;
 	nt += (y << 6);
 	*nt = attr;
@@ -126,31 +126,31 @@ static inline void xb_pcg_set_bg1_tile(uint16_t x, uint16_t y, uint16_t attr)
 // Scroll registers
 static inline void xb_pcg_set_bg0_xscroll(uint16_t x)
 {
-	volatile uint16_t *scr = (volatile uint16_t *)PCG_BG0_XSCRL;
+	volatile uint16_t *scr = (volatile uint16_t *)XB_PCG_BG0_XSCRL;
 	*scr = x;
 }
 
 static inline void xb_pcg_set_bg1_xscroll(uint16_t x)
 {
-	volatile uint16_t *scr = (volatile uint16_t *)PCG_BG1_XSCRL;
+	volatile uint16_t *scr = (volatile uint16_t *)XB_PCG_BG1_XSCRL;
 	*scr = x;
 }
 
 static inline void xb_pcg_set_bg0_yscroll(uint16_t y)
 {
-	volatile uint16_t *scr = (volatile uint16_t *)PCG_BG0_YSCRL;
+	volatile uint16_t *scr = (volatile uint16_t *)XB_PCG_BG0_YSCRL;
 	*scr = y;
 }
 
 static inline void xb_pcg_set_bg1_yscroll(uint16_t y)
 {
-	volatile uint16_t *scr = (volatile uint16_t *)PCG_BG1_YSCRL;
+	volatile uint16_t *scr = (volatile uint16_t *)XB_PCG_BG1_YSCRL;
 	*scr = y;
 }
 
 static inline volatile X68kPcgSprite *xb_pcg_get_sprite(uint8_t idx)
 {
-	volatile X68kPcgSprite *ret = (volatile X68kPcgSprite *)PCG_SPR_TABLE;
+	volatile X68kPcgSprite *ret = (volatile X68kPcgSprite *)XB_PCG_SPR_TABLE;
 	ret += idx;
 	return ret;
 }

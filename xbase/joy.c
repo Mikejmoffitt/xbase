@@ -30,12 +30,12 @@ void xb_joy_poll(void)
 			if ((pad & XB_KEY_UP) && (pad & XB_KEY_DOWN))
 			{
 				pad &= ~(XB_KEY_UP | XB_KEY_DOWN);
-				pad |= XB_KEY_SELECT:
+				pad |= XB_KEY_SELECT;
 			}
 			if ((pad & XB_KEY_LEFT) && (pad & XB_KEY_RIGHT))
 			{
 				pad &= ~(XB_KEY_LEFT | XB_KEY_RIGHT);
-				pad |= XB_KEY_START:
+				pad |= XB_KEY_START;
 			}
 		}
 

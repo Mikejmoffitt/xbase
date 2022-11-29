@@ -37,7 +37,7 @@ flags = 0x007F;  // Enable all layers.
 
 // TODO: Enums for screen, prio, and flag registers.
 
-typedef struct XBVidconConfig
+typedef struct XBVidconCfg
 {
 	// R0: Screen
 	// Bits 0-1: color depth (0 = 16, 1 = 256, 2 = invalid, 3 = 65536)
@@ -78,9 +78,9 @@ typedef struct XBVidconConfig
 	// .... .... .... ..1. GP1 enable
 	// .... .... .... ...0 GP0 enable
 	uint16_t flags;
-} XBVidconConfig;
+} XBVidconCfg;
 
-void xb_vidcon_init(const XBVidconConfig *c);
+void xb_vidcon_init(const XBVidconCfg *c);
 
 // Graphics plane palette entries
 static inline void xb_vidcon_set_gp_color(uint16_t index, uint16_t val)

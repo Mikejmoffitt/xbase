@@ -104,9 +104,9 @@ void xb_joy_init(uint8_t player, XBJoyMode mode);
 void xb_joy_poll(void);
 
 // Accessors for joypad data.
-static XBJoyBits xb_joy(uint8_t player) { return g_xb_joy[player]; }
-static XBJoyBits xb_joy_pos(uint8_t player) { return g_xb_joy_pos[player]; }
-static XBJoyBits xb_joy_neg(uint8_t player) { return g_xb_joy_neg[player]; }
-static XBJoyBits xb_joy_prev(uint8_t player) { return g_xb_joy_prev[player]; }
+static inline XBJoyBits xb_joy(uint8_t player) { return g_xb_joy[player]; }
+static inline XBJoyBits xb_joy_pos(uint8_t player) { return g_xb_joy_pos[player]; }
+static inline XBJoyBits xb_joy_neg(uint8_t player) { return g_xb_joy_neg[player]; }
+static inline XBJoyBits xb_joy_prev(uint8_t player) { return g_xb_joy_prev[player]; }
 
 #endif // _X68K_JOY_H
