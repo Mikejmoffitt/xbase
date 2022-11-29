@@ -103,7 +103,7 @@ typedef struct XBCrtcTimingCfg
 	// R09 - R19 are not represented here (h-int, scroll registers).
 
 	// R20 at 0xE80028. Bits 8-10 (color, plane size) should match the video
-	// controller's top 3 bits (0xE82400).
+	// controller's top 3 bits in the "screen" field (0xE82400).
 	uint16_t flags;
 	/*
 	15                0

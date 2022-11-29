@@ -42,7 +42,7 @@ typedef struct XBVidconConfig
 	// R0: Screen
 	// Bits 0-1: color depth (0 = 16, 1 = 256, 2 = invalid, 3 = 65536)
 	// Bit 2: "Real screen mode" 0 = 512x512, 1 = 1024x1024
-	// This should match CRTC R20 bits 8-10 shifted down to bits 0-2.
+	// This should match CRTC flags / R20 bits 8-10 shifted down to bits 0-2.
 	uint16_t screen;
 
 	// R1: Priority
