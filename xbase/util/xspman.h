@@ -5,6 +5,8 @@
 #ifndef XBASE_UTIL_XSPMAN_H
 #define XBASE_UTIL_XSPMAN_H
 
+#include <stdbool.h>
+
 //
 // Pre-Init
 //
