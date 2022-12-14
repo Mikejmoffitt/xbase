@@ -211,6 +211,11 @@ bool xspman_load(void)
 {
 	if (s_xspman.loaded) return false;
 
+	printf("xspman_load: buffer summary\n");
+	printf("    FRM: %d\n", s_xspman.frm_bytes);
+	printf("    REF: %d\n", s_xspman.ref_bytes);
+	printf("    PCG: %d\n", s_xspman.pcg_bytes);
+
 	// Create buffers based on surveyed data from registration.
 	s_xspman.frmdat = malloc(s_xspman.frm_bytes);
 	if (!s_xspman.frmdat) return false;
@@ -241,6 +246,7 @@ bool xspman_load(void)
 	XSPManFileNode *current = s_xspman.file_list;
 	while (current != NULL)
 	{
+		printf("xspman_load: Load \"%s\"\n", current->fname_base);
 		if (current->is_xobj)
 		{
 			// First, load the REF data, and rebase it against frm_base, which is
@@ -260,6 +266,7 @@ bool xspman_load(void)
 	}
 
 	free_file_list(s_xspman.file_list);
+	printf("xspman_load: Complete\n");
 
 	s_xspman.loaded = true;
 	return true;

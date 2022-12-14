@@ -11,7 +11,6 @@
 // Pre-Init
 //
 // These functions should be called before xspman_load() is called.
-
 void xspman_init(void);
 
 // Registers an XSP file set.
@@ -49,7 +48,7 @@ short xspman_get_pcg_alt_size(void);
 const void *xspman_get_objdat_ptr(void);
 
 // Frees memory allocated by xspman_load. Once called, the pre-init functions
-// may be called again.
+// may be called again. Call this after xsp_off().
 void xspman_shutdown(void);
 
 
