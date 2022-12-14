@@ -26,9 +26,9 @@ static struct
 	XSPManFileNode *file_list;
 
 	// Buffer sizes.
-	short ref_bytes;
-	short frm_bytes;
-	short pcg_bytes;
+	int ref_bytes;
+	int frm_bytes;
+	int pcg_bytes;
 
 	// Load indices.
 	int ref_load_offs;
