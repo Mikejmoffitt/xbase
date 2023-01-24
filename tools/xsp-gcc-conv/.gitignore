@@ -1,0 +1,4 @@
+out/
+gen/
+*.swp
+x68k_xsp

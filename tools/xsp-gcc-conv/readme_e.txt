@@ -36,12 +36,12 @@ maximum of 32768 patterns may be used. With dynamic PCG memory allocation,
 the following optimizations are done.
 
   * Pattern data already in PCG is re-used (a cache hit).
-  
+
   * If PCG memory is unavailable for new pattern data, a region of already used
     PCG is overwritten.
 
   * PCG memory is kept as long as possible, as it may be needed later.
-  
+
 3) It is no longer to specify sprite number as with the X-BASIC sp_set function.
 
 4) Sprite priority may be specified in 64 steps (in reality, 48 steps).
@@ -100,20 +100,20 @@ notes pertaining to each function or the sample code.
 Step 1) * Set the screen size to 256x256 pixels.
 
         * Enable sprite display.
-        
+
         * Enable XSP by calling xsp_on.
 
 Step 2) * Pass PCG data and PCG placement work memory pointers by calling
           the xsp_pcgdat_set function.
-          
+
         * If it will be used, associate composite sprite mapping data by
           calling the xsp_objdat_set function.
-          
+
         * If needed, vertical mode may be set by calling xsp_vertical.
           XSP also offers a function to rotate all PCG pattern data by 90
           degrees. Do so by calling pcg_roll90.
-          
-          
+
+
 ~~~~~~~~~~~~~~~ Usage During the Main Loop of the Game ~~~~~~~~~~~~~~~~~~~
 
 Step 3) * If appropriate, call xsp_vsync for vertical synchronization.
@@ -134,17 +134,17 @@ Step 6) * Call xsp_off to disable XSP.
 
 Note 1) If the PCG tile data has changed (for example, by loading new
         sprite data), it must be passed to XSP by calling xsp_pcgdat_set.
-          
+
 Note 2) If needed, call the xsp_pcgmask_on/off functions to allocate and
         release areas of PCG used by XSP. (This is always available after
         xsp_on has been called).
 
 Note 3) You may optionally call xsp_mode to set the algorithm used to
         multiplex sprites. (This may be done after xsp_on has been called).
-        
+
 Note 4) You may optionally call xsp_vsyncint_on/off to set or clear the
         vertical blank interrupt process. (This may be done after xsp_on).
-        
+
 Note 5) Raster line interrupts may be set or cleared using the
         xsp_hsyncint_on/off functions. (May be done after calling xsp_on).
 
@@ -161,21 +161,21 @@ This section explains how to call C functions from assembly.
 Step 1) Save registers d0-d2/a0-a2 to the stack. (Even though it is not
         guaraneteed that a function will clobber any or all of those
         registers, they should be guarded against future changes).
-        
+
         * TL Note: If your code will not be bothered by those registers
         being changed from the function call, then you may skip this.
 
 Step 2) Function arguments are pushed to the stack, starting from the last
         parameter. All arguments are aligned to long word (32-bit) size,
         regardless of the type of the argument.
-        
+
 Step 3) Call the function using the bsr or jsr instructions. The label
         to jump to is the C function name, prefixed with an underscore.
-        
+
         The return value is placed in d0, and the type of the data depends
         upon the function type. (For example, a function returning a short
         / int16_t will only place valid data in the lower 16 bits.)
-        
+
 Step 4) Align the stack in accordance to the amount offset from step 2.
 
 Step 5) Restore the saved registers d0-d2/a0-a2 from the first step.
@@ -229,7 +229,7 @@ Description: Terminates XSP. At the time of program shutdown, always call
 
 Prototype:   void xsp_pcgdat_set(const void *pcg_dat, char *pcg_alt,
                                  short alt_size);
-                                 
+
 Arguments:   void  *pcg_dat : PCG data pointer
              char  *pcg_alt : PCG placement work memory pointer
              short alt_size : PCG placement work memory size (byte count)
@@ -240,24 +240,24 @@ Description: Assigns PCG data and PCG placement work memory to XSP. This must
              be called after xsp_on is called. If the PCG data itself has
              changed (for example, after loading new sprite data, etc) do be
              sure to re-specify the data by calling this function again.
-             
+
              The PCG placement work memory is used internally by XSP. It is
              automatically initialized (cleared to zero) by this function, so
              the user does not need to initialize it manually.
-             
+
              The PCG data format is the "beta" format (described later). PCG
              data (with the extension ".SP") exported by the sprite tool
              SM.X (From the June 1992 issue of Oh! X) or EEL.X (CATsoft/GORRY)
              may be used as-is.
-             
+
              TL Note: The following paragraph was a little dated with its advice
              so I have made adjustments to let it be more specific.
-             
+
              PCG data must lie on an address with even alignment. If using an
              assembler, use a .align 2 directive or something similar. For C,
              with GCC, you can create an int16_t array, or simply use
              __attribute__((aligned(2))) when creating the buffer. 
-             
+
              A PCG sprite is divided into four tiles, each 8x8 pixels. 
 
 
@@ -280,7 +280,7 @@ Description: Assigns PCG data and PCG placement work memory to XSP. This must
       ↓    ┗━━━━━━┻━━━━━━┛          ↓  └──────┴──────┴──────┴──────┘
 
            ←──16 pixels──→              ←──────── 8 pixels ────────→
-           
+
              Each number in this figure represents the offset (in bytes) from
              the beginning of the data, in hexidecimal radix. Every square
              above is one byte, where the upper and lower nybbles represent
@@ -288,13 +288,13 @@ Description: Assigns PCG data and PCG placement work memory to XSP. This must
              resulting in 32 bytes per 8x8 tile. The same is true of the other
              three tiles. All four tiles consecutively make one 16x16 PCG tile.
              One 16x16 PCG tile is thus 128 bytes.
-             
+
              TL Note: The format is simply 4bpp linear arrangement, with four
              8x8 tiles in a row-interleaved order forming a 16x16 bitmap, per
              sprite. This is identical to the way Megadrive games store a 2x2
              cell sprite in VRAM.
-             
-             
+
+
              PCG tiles like this are placed in memory, in sequence, to form the
              block of PCG data (as shown below).
 
@@ -311,15 +311,15 @@ Description: Assigns PCG data and PCG placement work memory to XSP. This must
                 │Pattern No. 2 │
                 │              │
           +0x180├──────────────┤
-                   ：                ：
+                ：             ：
 
 
 --------------------------------------------------------------------------
 
-● Masking an area of PCG for XSP to leave unmanaged
+● Masking a reserved area of PCG for XSP to leave unmanaged
 
 Prototype:   void xsp_pcgmask_on(short start_no, short end_no);
-                                 
+
 Arguments:   short start_no : Mask start PCG code number
              short end_no   : Mask end PCG code number
 
@@ -327,7 +327,7 @@ Return:      None
 
 Description: Specifies an area of PCG to mask off for XSP to not use. Areas
              masked off will not be modified by XSP.
-             
+
              For example, if the user is already using part of PCG for
              background tiles, or is using part of PCG RAM for background
              layout attributes (PCG codes 128 - 255), it must be masked off
@@ -335,10 +335,10 @@ Description: Specifies an area of PCG to mask off for XSP to not use. Areas
 
 --------------------------------------------------------------------------
 
-● Unmasking an area of PCG for XSP to leave unmanaged
+● Unmasking a reserved area of PCG for XSP to leave unmanaged
 
 Prototype:   void xsp_pcgmask_off(short start_no, short end_no);
-                                 
+
 Arguments:   short start_no : Mask start PCG code number
              short end_no   : Mask end PCG code number
 
@@ -352,7 +352,7 @@ Description: Cancels the setting of a masked area of PCG memory. Please see
 ● Selection of sprite multiplication algorithm
 
 Prototype:   void xsp_mode(short mode_no);
-                                 
+
 Arguments:   short mode_no : 1 = Flicker multiplexing of 128 sprites (max 384)
                       2 = Maximum of 512 sprites (default)
                       3 = Maximum of 512 sprites, priority error mitigation
@@ -364,11 +364,11 @@ Description: Specifies sprite multiplication algorithm.
      Mode 1: Through the use of 128 hardware sprites, up to 384 sprites are
              displayed by flickering sprites between positions. Sprite flicker
              is done in a way that gives high priority sprites preference.
-             
+
      Mode 2: In this mode, up to 512 sprites are drawn through the use of
              raster splits. For the sake of simplicity for the algorithm,
              there may be tears in sprites placed on the raster split "seams".
-             
+
      Mode 3: Similar to Mode 2, but techniques are employed to reduce the
              collapse of the priority system across the raster splits. 
              If the draw count is very high (in excess of 300, roughly) the
@@ -380,7 +380,7 @@ Description: Specifies sprite multiplication algorithm.
 ● Specification of composite sprite mapping data
 
 Prototype:   void xsp_objdat_set(const void *sp_ref);
-                                 
+
 Arguments:   void *sp_ref : Composite sprite reference data pointer
 
 Return:      None
@@ -393,7 +393,7 @@ Description: Associates composite sprite mapping data with XSP. Execute this
 ● Wait for vertical sync
 
 Prototype:   short xsp_vsync(short n);
-                                 
+
 Arguments:   short n : Number of vertical blank intervals to wait
 
 Return:      Number of missed vertical blank periods.
@@ -405,7 +405,7 @@ Description: Waits for vertical vsync for the specified number of periods.
              It has been designed to skip one vblank wait if processing delay
              has occured (to allow the game to catch up). Use this in the 
              main loop of the game.
-             
+
              If 0 is specified for n, one frame of advance processing will be
              performed. If this is done, the output of the game can be smoothed
              in the event of processing drop-out, but it incurs a frame of
@@ -416,7 +416,7 @@ Description: Waits for vertical vsync for the specified number of periods.
 ● Registering sprites for display
 
 Prototype:   short xsp_set(short x, short y, short pt, short info);
-                                 
+
 Arguments:   short x    : Sprite X position
              short y    : Sprite Y position
              short pt   : Sprite PCG pattern no.（0-0x7FFF）
@@ -427,7 +427,7 @@ Return:      If the sprite's coordinates (x,y) were off-screen, 0 is returned.
 
 Description: This function registers a sprite for display. All registered
              sprites are displayed at once upon calling xsp_out.
-             
+
              The "info" argument is a bitfield indicating sprite reversal,
              palette number, and display priority.
 
@@ -442,7 +442,7 @@ Description: This function registers a sprite for display. All registered
                                             0x4：Horizontal flip
                                             0x8：Vertical flip
                                             0xC：Both
-                                            
+
              Higher display priority numbers are displayed on top. The second
              digit of the priority level represents interaction with the BG
              planes. Below is the specification.
@@ -458,7 +458,7 @@ Description: This function registers a sprite for display. All registered
 ● Registering composite sprites for display
 
 Prototype:   void xobj_set(short x, short y, short pt, short info);
-                                 
+
 Arguments:   short x    : Composite sprite X position
              short y    : Composite sprite Y position
              short pt   : Composite sprite mapping (REF) no.（0-0x0FFF）
@@ -468,10 +468,10 @@ Return:      None
 
 Description: Performs a registration of a composite sprite for display.
              Registered sprites are displayed in one batch upon calling xsp_out.
-             
+
              Please read the description for xsp_set for an explanation of the
              `info` argument.
-             
+
              The list of composite sprites (format expanded upon later) must
              have already been prepared by the user prior to calling xobj_set.
              This is done using xsp_objdat_set. Behavior is not predictable if
@@ -483,7 +483,7 @@ Description: Performs a registration of a composite sprite for display.
 ● Registering sprites for display (with struct pointer)
 
 Prototype:   short xsp_set_st(const void *arg);
-                                 
+
 Arguments:   void *arg : Parameter struct pointer
 
 Return:      If the sprite's coordinates (x,y) were off-screen, 0 is returned.
@@ -491,49 +491,49 @@ Return:      If the sprite's coordinates (x,y) were off-screen, 0 is returned.
 
 Description: This function is a little faster than the xsp_set function. Please
              read the description of xsp_set for more details.
-             
+
              The struct format is as follows:
-             
+
         ┌────────── Offset from the start of the struct (in bytes)
         │┌───────── Size（w = word, 16-bit）
         ││    ┌──── Contents
         ↓↓    ↓
-        
+
         +0.w : Sprite X position
         +2.w : Sprite Y position
         +4.w : Sprite PCG pattern no.（0-0x7FFF）
         +6.w : Data for reversal, color, display priority
                (same as the `info` argument from xsp_set)
-               
+
              When using the C language, this struct is defined in the header
-             file as XSP_SET_ARG. 
+             file as XSP_SET_ARG.
 
 --------------------------------------------------------------------------
 
 ● Registering composite sprites for display (with struct pointer)
 
 Prototype:   void xobj_set(short x, short y, short pt, short info);
-                                 
+
 Arguments:   void *arg : Parameter struct pointer
 
 Return:      None
 
 Description: This function is faster than xobj_set through the use of an
              argument function pointer. See xobj_set's description for details.
-             
+
              The struct format is as follows:
 
         ┌────────── Offset from the start of the struct (in bytes)
         │┌───────── Size（w = word, 16-bit）
         ││    ┌──── Contents
         ↓↓    ↓
-        
+
         +0.w : Composite sprite X position
         +2.w : Composite sprite Y position
         +4.w : Composite sprite mapping (REF) no.（0-0x0FFF）
         +6.w : Data for reversal, color, display priority
                (same as the `info` argument from xobj_set)
-               
+
              When using the C language, this struct is defined in the header
              file as XSP_SET_ARG. 
 
@@ -547,13 +547,13 @@ Return:      The number of registered sprites displayed
 
 Description: Draws all sprites registered by xsp_set, xobj_set, xsp_set_st,
              and xobj_set_st functions.
-             
+
              Before calling this function, be sure initialization (such as 
              registering PCG data with xsp_pcgdat_set, and specifying composite
              sprite data with xsp_objdat_set) has already been completed.
              Behavior is unpredictable if this function is called without having
              initialized XSP beforehand.
-             
+
              Due to internal details inherent to XSP's design, if this function
              is executed three or more times within one display period, you will
              have to wait until the next blanking period.
@@ -564,7 +564,7 @@ Description: Draws all sprites registered by xsp_set, xobj_set, xsp_set_st,
 ● Vertical / portrait / tate screen mode enable/disable
 
 Prototype:   void xsp_vertical(short flag);
-                                 
+
 Arguments:   short flag : 1 Vertical mode on
                           0 Vertical mode off
 
@@ -574,11 +574,11 @@ Description: Enables or disables the vertical screen mode, for when the display
              has been oriented vertically. Depending on the model and
              circumstances, rotating a monitor physically can cause undue stress
              and damage, so please do so at your own risk.
-             
+
              TL note: Rotating a larger Trinitron monitor may not be good for
              the aperture grille, which normally has many vertical steel wires
              assisted by gravity. With Trinitrons of size, beware!
-             
+
              In vertical screen mode, the display is rotated counter-clockwise
              (as with the X68000 versin of Dragon Spirit). PCG data should be
              redrawn accordingly, rotated 90 degrees counter clockwise. A
@@ -597,21 +597,21 @@ Return:      None
 Description: Registers a user-specified vertical blank interrupt handler. This
              function is executed at the time that XSP services the vertical
              blank interrupt.
-             
+
              The function can be a normal function written in C, and does not
              need to be especially written for interrupt handling; It is not
              necessary to specify any interrupt attributes when using GCC.
              When writing a routine in assembly, return using the rts
              instruction instead of rte. In addition, it is not necessary to
              save and restore registers within the routine.
-             
+
              Note that user-specifed interrupt functions should be as short and
              lightweight as possible. If the vertical processing period is too
              long and extends into the active display period, it will cause
              visible interference with sprites.
-             
+
              TL note: the callback function should fit the following prototype:
-             
+
              void vbl_callback(void);
 
 --------------------------------------------------------------------------

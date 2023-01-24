@@ -1,0 +1,197 @@
+	.nolist
+
+.set	_B_KEYINP,0x00
+.set	_B_KEYSNS,0x01
+.set	_B_SFTSNS,0x02
+.set	_KEY_INIT,0x03
+.set	_BITSNS	,0x04
+.set	_SKEYSET,0x05
+.set	_TVCTRL	,0x0c
+.set	_LEDMOD	,0x0d
+.set	_TGUSEMD,0x0e
+.set	_DEFCHR	,0x0f
+.set	_CRTMOD	,0x10
+.set	_CONTRAST,0x11
+.set	_HSVTORGB,0x12
+.set	_TPALET	,0x13
+.set	_TPALET2,0x14
+.set	_TCOLOR	,0x15
+.set	_FNTADR,0x16
+.set	_VRAMGET,0x17
+.set	_VRAMPUT,0x18
+.set	_FNTGET	,0x19
+.set	_TEXTGET,0x1a
+.set	_TEXTPUT,0x1b
+.set	_CLIPPUT,0x1c
+.set	_SCROLL	,0x1d
+.set	_B_CURON,0x1e
+.set	_B_CUROFF,0x1f
+.set	_B_PUTC	,0x20
+.set	_B_PRINT,0x21
+.set	_B_COLOR,0x22
+.set	_B_LOCATE,0x23
+.set	_B_DOWN_S,0x24
+.set	_B_UP_S	,0x25
+.set	_B_UP	,0x26
+.set	_B_DOWN	,0x27
+.set	_B_RIGHT,0x28
+.set	_B_LEFT	,0x29
+.set	_B_CLR_ST,0x2a
+.set	_B_ERA_ST,0x2b
+.set	_B_INS	,0x2c
+.set	_B_DEL	,0x2d
+.set	_B_CONSOL,0x2e
+.set	_B_PUTMES,0x2f
+.set	_SET232C,0x30
+.set	_LOF232C,0x31
+.set	_INP232C,0x32
+.set	_ISNS232C,0x33
+.set	_OSNS232C,0x34
+.set	_OUT232C,0x35
+.set	_SETFNTADR,0x38
+.set	_JOYGET	,0x3b
+.set	_INIT_PRN,0x3c
+.set	_SNSPRN	,0x3d
+.set	_OUTLPT	,0x3e
+.set	_OUTPRN	,0x3f
+.set	_B_SEEK	,0x40
+.set	_B_VERIFY,0x41
+.set	_B_READDI,0x42
+.set	_B_DSKINI,0x43
+.set	_B_DRVSNS,0x44
+.set	_B_WRITE,0x45
+.set	_B_READ	,0x46
+.set	_B_RECALI,0x47
+.set	_B_ASSIGN,0x48
+.set	_B_WRITED,0x49
+.set	_B_READID,0x4a
+.set	_B_BADFMT,0x4b
+.set	_B_READDL,0x4c
+.set	_B_FORMAT,0x4d
+.set	_B_DRVCHK,0x4e
+.set	_B_EJECT,0x4f
+.set	_DATEBCD,0x50
+.set	_DATESET,0x51
+.set	_TIMEBCD,0x52
+.set	_TIMESET,0x53
+.set	_DATEGET,0x54
+.set	_DATEBIN,0x55
+.set	_TIMEGET,0x56
+.set	_TIMEBIN,0x57
+.set	_DATECNV,0x58
+.set	_TIMECNV,0x59
+.set	_DATEASC,0x5a
+.set	_TIMEASC,0x5b
+.set	_DAYASC	,0x5c
+.set	_ALARMMOD,0x5d
+.set	_ALARMSET,0x5e
+.set	_ALARMGET,0x5f
+.set	_ADPCMOUT,0x60
+.set	_ADPCMINP,0x61
+.set	_ADPCMAOT,0x62
+.set	_ADPCMAIN,0x63
+.set	_ADPCMLOT,0x64
+.set	_ADPCMLIN,0x65
+.set	_ADPCMSNS,0x66
+.set	_ADPCMMOD,0x67
+.set	_OPMSET	,0x68
+.set	_OPMSNS	,0x69
+.set	_OPMINTST,0x6a
+.set	_TIMERDST,0x6b
+.set	_VDISPST,0x6c
+.set	_CRTCRAS,0x6d
+.set	_HSYNCST,0x6e
+.set	_PRNINTST,0x6f
+.set	_MS_INIT,0x70
+.set	_MS_CURON,0x71
+.set	_MS_CUROF,0x72
+.set	_MS_STAT,0x73
+.set	_MS_GETDT,0x74
+.set	_MS_CURGT,0x75
+.set	_MS_CURST,0x76
+.set	_MS_LIMIT,0x77
+.set	_MS_OFFTM,0x78
+.set	_MS_ONTM,0x79
+.set	_MS_PATST,0x7a
+.set	_MS_SEL	,0x7b
+.set	_MS_SEL2,0x7c
+.set	_SKEY_MOD,0x7d
+.set	_DENSNS	,0x7e
+.set	_ONTIME	,0x7f
+.set	_B_INTVCS,0x80
+.set	_B_SUPER,0x81
+.set	_B_BPEEK,0x82
+.set	_B_WPEEK,0x83
+.set	_B_LPEEK,0x84
+.set	_B_MEMSTR,0x85
+.set	_B_BPOKE,0x86
+.set	_B_WPOKE,0x87
+.set	_B_LPOKE,0x88
+.set	_B_MEMSET,0x89
+.set	_DMAMOVE,0x8a
+.set	_DMAMOV_A,0x8b
+.set	_DMAMOV_L,0x8c
+.set	_DMAMODE,0x8d
+.set	_BOOTINF,0x8e
+.set	_ROMVER	,0x8f
+.set	_G_CLR_ON,0x90
+.set	_GPALET	,0x94
+.set	_SFTJIS	,0xa0
+.set	_JISSFT	,0xa1
+.set	_AKCONV	,0xa2
+.set	_RMACNV	,0xa3
+.set	_DAKJOB	,0xa4
+.set	_HANJOB	,0xa5
+.set	_B_CONMOD,0xad	/*vIOCS.X*/
+.set	_OS_CURON,0xae
+.set	_OS_CUROF,0xaf
+.set	_DRAWMODE,0xb0	/*vIOCS.X*/
+.set	_APAGE	,0xb1
+.set	_VPAGE	,0xb2
+.set	_HOME	,0xb3
+.set	_WINDOW	,0xb4
+.set	_WIPE	,0xb5
+.set	_PSET	,0xb6
+.set	_POINT	,0xb7
+.set	_LINE	,0xb8
+.set	_BOX	,0xb9
+.set	_FILL	,0xba
+.set	_CIRCLE	,0xbb
+.set	_PAINT	,0xbc
+.set	_SYMBOL	,0xbd
+.set	_GETGRM	,0xbe
+.set	_PUTGRM	,0xbf
+.set	_SP_INIT,0xc0
+.set	_SP_ON	,0xc1
+.set	_SP_OFF	,0xc2
+.set	_SP_CGCLR,0xc3
+.set	_SP_DEFCG,0xc4
+.set	_SP_GTPCG,0xc5
+.set	_SP_REGST,0xc6
+.set	_SP_REGGT,0xc7
+.set	_BGSCRLST,0xc8
+.set	_BGSCRLGT,0xc9
+.set	_BGCTRLST,0xca
+.set	_BGCTRLGT,0xcb
+.set	_BGTEXTCL,0xcc
+.set	_BGTEXTST,0xcd
+.set	_BGTEXTGT,0xce
+.set	_SPALET	,0xcf
+.set	_TXXLINE,0xd3
+.set	_TXYLINE,0xd4
+.set	_TXLINE,0xd5	/*vIOCS.X*/
+.set	_TXBOX	,0xd6
+.set	_TXFILL	,0xd7
+.set	_TXREV	,0xd8
+.set	_TXRASCPY,0xdf
+.set	_OPMDRV	,0xf0	/*vFM‰¹Œ¹ƒhƒ‰ƒCƒo*/
+.set	_ABORTRST,0xfd
+.set	_IPLERR	,0xfe
+.set	_ABORTJOB,0xff
+
+	.macro	IOCS	callno
+	move.l	#\callno,d0
+	trap	#15
+	.endm
+
+	.list

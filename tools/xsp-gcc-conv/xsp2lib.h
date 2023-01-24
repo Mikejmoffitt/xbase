@@ -3,13 +3,10 @@ Sprite Management System "XSP"
 Ver 2.02 by Yosshin
 https://github.com/yosshin4004/x68k_xsp
 Translation and formatting by Mike Moffitt 2022
-This file work is under the same Apache license as the original.
 */
 
 #ifndef XSP2LIB_H
 #define XSP2LIB_H
-
-#include <stdint.h>
 
 // xsp_set_st, xobj_set_st の引数構造体
 // Argument struct for xsp_set_st and xobj_set_st.
@@ -82,7 +79,7 @@ void xsp_pcgmask_off(short start_no, short end_no);
 void xsp_mode(short mode_no);
 
 // Specifies composite sprite mapping data.
-//      sp_ref: Pointer to XOBJ referene data.
+//      sp_ref: Pointer to XOBJ reference data.
 void xsp_objdat_set(const XOBJ_REF_DAT *sp_ref);
 
 // Wait for vertical sync.
@@ -151,20 +148,20 @@ void xsp_min_divh_set(short h);
 
 // Returns the minimum raster division height.
 //         i: Division block index (0 - 6).
-int16_t xsp_divy_get(short i);
+short xsp_divy_get(short i);
 
 // Sets offset value for sprite transfer raster line for 31KHz.
 //      offs: Transfer raster line offset
 void xsp_raster_ofs_for31khz_set(short ofs);
 
 // Returns the sprite transfer raster line for 31KHz.
-int16_t xsp_raster_ofs_for31khz_get(void);
+short xsp_raster_ofs_for31khz_get(void);
 
 // Sets offset value for sprite transfer raster line for 15KHz.
 //      offs: Transfer raster line offset
 void xsp_raster_ofs_for15khz_set(short ofs);
 
 // Returns the sprite transfer raster line for 15KHz.
-int16_t xsp_raster_ofs_for15khz_get(void);
+short xsp_raster_ofs_for15khz_get(void);
 
 #endif
