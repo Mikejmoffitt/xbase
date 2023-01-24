@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# shithouse XSP 68k syntax converter 0.1
+# shithouse XSP 68k syntax converter 0.2
 # really just awful python script whose only goal is to convert the HAS-syntax
 # XSPlib 68000 assembly into something GAS will assemble. This is so we can get
 # an object file that modern GCC can link to when cross-compiling/assembling.
@@ -150,7 +150,8 @@ def temp_labels(line):
 def binary_exp(line):
 	if "#%" in line:
 		line = line.replace("#%", "#0b", 1)
-		line = line.replace("_", "")
+		line = line.replace("_0", "0")
+		line = line.replace("_1", "1")
 	return line
 
 def noneq(line):
@@ -263,6 +264,17 @@ def parse_all(lines, out_f):
 		line = ds(line)
 		line = binary_exp(line)
 		line = line.replace('', '')
+		# Hork up declarations of the C function names
+		if ".globl" in line:
+			tokens = re.split('\t| |,', line)
+			while "" in tokens:
+				tokens.remove("")
+			cname = tokens[1]
+			cname = cname.replace('_xsp_', 'xsp_')
+			cname = cname.replace('_xobj_', 'xobj_')
+			out_f.write(cname + "\t=\t" + tokens[1] + "\n")
+			out_f.write("\t.globl\t" + cname + "\n")
+			out_f.write("\t.type\t" + cname + ",%function\n")
 		# GAS isn't smart enough to notice this and thinks you can't do it
 		line = line.replace('moveq.l\t#255,', 'moveq.l\t#-1,')
 		line = line.replace('moveq.w\t#255,', 'moveq.w\t#-1,')
