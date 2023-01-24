@@ -34,6 +34,39 @@ def pr_protect_hack(line):
 		line = line.replace(",0", ",")
 	return line
 
+def parse_dcb(line):
+	if "dcb." in line:
+		tokens = re.split('\t| |,', line)
+		while "" in tokens:
+			tokens.remove("")
+		# print(tokens)
+		dcbidx = 0
+		for i in range(0, len(tokens)):
+			token = tokens[i]
+			if "dcb." in token:
+				dcbidx = i
+				break
+		
+		sizechr = 'b'
+		if tokens[dcbidx] == "dcb.w":
+			sizechr = 'w'
+		elif tokens[dcbidx] == "dcb.l":
+			sizechr = 'l'
+		count = eval(tokens[dcbidx+1])
+		value = tokens[dcbidx+2]
+		line = ""
+		for token in tokens[0:dcbidx]:
+			line = line + token
+		line = line + "\tdc." + sizechr + "\t"
+		for i in range(0, count):
+			line = line + value
+			if i < (count - 1):
+				line = line + ", "
+		line = line + '\t'
+		for token in tokens[dcbidx+3:]:
+			line = line + token
+	return line
+
 g_rept_mode = False
 
 def rept(line):
@@ -281,10 +314,8 @@ def parse_all(lines, out_f):
 		line = line.replace('moveq.b\t#255,', 'moveq.b\t#-1,')
 		line = line.replace('`', ';', 1)
 		line = line.replace('¥', '\\')
-		line = line.replace('\tdcb.l', '\t.long')
-		line = line.replace('\tdcb.w', '\t.word')
-		line = line.replace('\tdcb.b', '\t.byte')
 		line = hex_transform(line)
+		line = parse_dcb(line)
 		out_f.write(line)
 		out_f.write("\n")
 
