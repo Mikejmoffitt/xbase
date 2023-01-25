@@ -220,13 +220,16 @@ def comments(line):
 
 # fake-ass implementation of "dorg" style .offset commands
 
+g_struct_mode = False
 g_offset = 0
 
 def offset(line):
 	if "\t.offset " not in line:
 		return line
 	global g_offset
+	global g_struct_mode
 	line = line.replace("\t.offset ", "", 1)
+	g_struct_mode = True
 	elements = line.split()
 	g_offset = int(elements[0]);
 	return ""
@@ -242,13 +245,20 @@ def size_for_ds_str(size_str):
 	return size
 
 def ds(line):
+	global g_offset
+	global g_struct_mode
+
+	if g_struct_mode == False:
+		return line
 	if "\tds." not in line:
 		return line
 	if "STRUCT_SIZE" in line:
 		return line
 	if "SP_MAX" in line:
 		return line
-	global g_offset
+
+	if "struct_end:" in line:
+		g_struct_mode = False
 	elements = line.split()
 	if ("ds." in elements[0]):
 		size = size_for_ds_str(elements[0])
@@ -298,7 +308,7 @@ def parse_all(lines, out_f):
 		line = binary_exp(line)
 		line = line.replace('', '')
 		# Hork up declarations of the C function names
-		if ".globl" in line:
+		if False and ".globl" in line:
 			tokens = re.split('\t| |,', line)
 			while "" in tokens:
 				tokens.remove("")

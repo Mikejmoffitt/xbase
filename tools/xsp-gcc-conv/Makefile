@@ -20,9 +20,9 @@ MKDIR := mkdir
 SRCCNV := python3 xsp_syntax_conv.py
 GIT := git
 
-ASFLAGS += -m68000 --bitwise-or --register-prefix-optional -I. -I$(CONVSRCDIR)
+ASFLAGS += -m68000 -R --base-size-default-16 -l --bitwise-or --register-prefix-optional -I. -I$(CONVSRCDIR)
 
-TOPLEVEL_SRC := $(CONVSRCDIR)/XSPsys.s
+TOPLEVEL_SRC := $(CONVSRCDIR)/XSPsys.s cfuncs.s
 
 all: $(OUTDIR)/$(LIBNAME).a
 

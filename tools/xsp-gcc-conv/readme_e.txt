@@ -835,7 +835,7 @@ arranged in a rectangle.
   Reference data specifies the sprite count, and an offset to the start of an
   array of frame date from the start of the frame data structure.
   
-  The format for each elemnt of the reference structure is as follows.
+  The format for each element of the reference structure is as follows.
 
   ┌────────── Offset from the start of the struct (in bytes)
   │┌───────── Size（w = word, 16-bit, l = long, 32-bit）
@@ -856,7 +856,7 @@ arranged in a rectangle.
 ● In the name of speed, XSP does not perform strict error checking. Therefore,
   if invalid arguments are used or initialization is not done correctly, correct
   operation is not guaranteed. Please be mindful of this.
-  
+
 ● If 768x512 pixel display mode, or others that do not support sprites are used,
   a bus error will be triggered. XSP mitigates this problem by disabling the PCG
   when in modes that do not support sprites in order to avoid this. However, if
@@ -864,7 +864,7 @@ arranged in a rectangle.
   unable to determine that an invalid mode has been set, and this mitigation
   cannot be guaranteed to work. Avoid changing to potentially invalid screen
   modes while XSP is running.
-  
+
   TL Note: It appears to me that the 768px mode does not support the PCG as it
   changes to another clock, which is why relatively square pixels are achieved.
   I don't remember off the top of my head which register it is that does it, but
@@ -878,7 +878,7 @@ arranged in a rectangle.
   used, interrupt conflicts can occur that hamper the display of sprites. Be
   aware of this when using sound drivers that incorporate interrupts to perform
   PCM multiplexing.
-  
+
   If ZMUSIC is being used, this may be worked around by specifying -M as an
   argument when ZMUSIC is made resident. For MCDRV, even without a special
   switch, it will work without any conflicts (as expected of something made
@@ -1183,9 +1183,9 @@ ver. 1.00 : (1994/8)
 
   ● Version capable of only drawing 384 images. Afterwards came the path
     towards faster speed.
-    
+
     (The process of changes from version 1.00 to 2.00 has been omitted).
-    
+
 
 ver. 2.00 : (1996/8)
 
