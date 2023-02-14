@@ -13,6 +13,7 @@ OUTDIR := out
 
 # Utilities and configuration.
 RM := rm
+CP := cp
 ICONV := iconv
 AS := human68k-as
 AR := human68k-ar
@@ -24,7 +25,7 @@ ASFLAGS += -m68000 -R --base-size-default-16 -l --bitwise-or --register-prefix-o
 
 TOPLEVEL_SRC := $(CONVSRCDIR)/XSPsys.s cfuncs.s
 
-all: $(OUTDIR)/$(LIBNAME).a
+all: $(OUTDIR)/$(LIBNAME).a $(OUTDIR)/$(LIBNAME).h
 
 .PHONY: $(CONVSRCDIR)
 
@@ -50,6 +51,9 @@ $(OUTDIR)/$(LIBNAME).o: $(CONVSRCDIR) $(OUTDIR) $(TOPLEVEL_SRC)
 
 $(OUTDIR)/$(LIBNAME).a: $(OUTDIR)/$(LIBNAME).o
 	$(AR) cr $@ $<
+
+$(OUTDIR)/$(LIBNAME).h: $(LIBNAME).h
+	$(CP) $< $@
 
 $(OUTDIR):
 	$(MKDIR) -p $@
