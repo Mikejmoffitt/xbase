@@ -1,8 +1,7 @@
 	.bss
 
 # Storage for a2.
-c_a2_sav:	ds.l	1
-c_d2_sav:	ds.l	1
+c_a2d2_sav:	ds.l	2
 c_savret:	ds.l	1
 
 	.text
@@ -19,12 +18,10 @@ c_savret:	ds.l	1
 	.globl	\fname
 	.type	\fname,%function
 \fname:
-	move.l	a2, (c_a2_sav).w
-	move.l	d2, (c_d2_sav).w
+	movem.l	d2/a2, (c_a2d2_sav).w
 	move.l	(sp)+, (c_savret).w
 	bsr	_\fname
-	move.l	(c_a2_sav).w, a2
-	move.l	(c_d2_sav).w, d2
+	movem.l	(c_a2d2_sav).w, d2/d2
 	move.l	(c_savret).w, a0
 	jmp	(a0)
 	rts
