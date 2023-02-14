@@ -1,6 +1,6 @@
-	.bss
+	.text
 
-# Storage for a2.
+# Storage for a2. Abuse of .text for faster access...
 c_a2_sav:	ds.l	1
 c_d2_sav:	ds.l	1
 c_savret:	ds.l	1
