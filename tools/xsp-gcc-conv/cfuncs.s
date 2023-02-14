@@ -19,13 +19,13 @@ c_savret:	ds.l	1
 	.globl	\fname
 	.type	\fname,%function
 \fname:
-	move.l	a2, c_a2_sav
-	move.l	d2, c_d2_sav
-	move.l	(sp)+, c_savret
+	move.l	a2, (c_a2_sav).w
+	move.l	d2, (c_d2_sav).w
+	move.l	(sp)+, (c_savret).w
 	bsr	_\fname
-	move.l	c_a2_sav, a2
-	move.l	c_d2_sav, d2
-	move.l	c_savret, a0
+	move.l	(c_a2_sav).w, a2
+	move.l	(c_d2_sav).w, d2
+	move.l	(c_savret).w, a0
 	jmp	(a0)
 	rts
 	.endm
