@@ -8,6 +8,11 @@ Translation and formatting by Mike Moffitt 2022
 #ifndef XSP2LIB_H
 #define XSP2LIB_H
 
+#define XSP_HF 0x4000
+#define XSP_VF 0x8000
+
+#define XSP_INFO(flip, color, prio) ((flip) | ((color & 0xF) << 8) | (prio))
+
 // xsp_set_st, xobj_set_st の引数構造体
 // Argument struct for xsp_set_st and xobj_set_st.
 typedef struct
