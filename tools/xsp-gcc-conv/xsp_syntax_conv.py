@@ -10,6 +10,13 @@
 import sys
 import re
 
+def horrible_xsp_flag_hack(line):
+	if "cmpi.b" not in line:
+		return line
+	if "XSP_flg" not in line:
+		return line
+	return line.replace("XSP_flg", "(XSP_flg).l")
+
 g_divy_sub_hack_on = False
 
 def div_y_sub_hack(line):
@@ -307,17 +314,7 @@ def parse_all(lines, out_f):
 		line = ds(line)
 		line = binary_exp(line)
 		line = line.replace('', '')
-		# Hork up declarations of the C function names
-		if False and ".globl" in line:
-			tokens = re.split('\t| |,', line)
-			while "" in tokens:
-				tokens.remove("")
-			cname = tokens[1]
-			cname = cname.replace('_xsp_', 'xsp_')
-			cname = cname.replace('_xobj_', 'xobj_')
-			out_f.write(cname + "\t=\t" + tokens[1] + "\n")
-			out_f.write("\t.globl\t" + cname + "\n")
-			out_f.write("\t.type\t" + cname + ",%function\n")
+		line = horrible_xsp_flag_hack(line)
 		# GAS isn't smart enough to notice this and thinks you can't do it
 		line = line.replace('moveq.l\t#255,', 'moveq.l\t#-1,')
 		line = line.replace('moveq.w\t#255,', 'moveq.w\t#-1,')

@@ -17,6 +17,19 @@ typedef struct
 	short pt;             // スプライトパターン Sprite pattern no.
 	short info;           // 反転コード・色・優先度を表わすデータ
 	                      // Reflection code, color, priority data
+	/*
+      info = 0x****
+               ↑↑↑↑
+               ││││
+               ││└┴────────  Priority level          （0-0x3F）
+               ││
+               │└──────────  Color Code (palette line)（0-0xF）
+               │
+               └───────────  Reversal code  0x0：Normal
+                                            0x4：Horizontal flip
+                                            0x8：Vertical flip
+                                            0xC：Both
+	*/
 } XSP_SET_ARG;
 
 // 複合スプライトのフレームデータ構造体
