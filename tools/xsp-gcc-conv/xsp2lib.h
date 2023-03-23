@@ -8,6 +8,11 @@ Translation and formatting by Mike Moffitt 2022
 #ifndef XSP2LIB_H
 #define XSP2LIB_H
 
+#define XSP_HF 0x4000
+#define XSP_VF 0x8000
+
+#define XSP_INFO(flip, color, prio) ((flip) | ((color & 0xF) << 8) | (prio))
+
 // xsp_set_st, xobj_set_st の引数構造体
 // Argument struct for xsp_set_st and xobj_set_st.
 typedef struct
@@ -17,6 +22,19 @@ typedef struct
 	short pt;             // スプライトパターン Sprite pattern no.
 	short info;           // 反転コード・色・優先度を表わすデータ
 	                      // Reflection code, color, priority data
+	/*
+      info = 0x****
+               ↑↑↑↑
+               ││││
+               ││└┴────────  Priority level          （0-0x3F）
+               ││
+               │└──────────  Color Code (palette line)（0-0xF）
+               │
+               └───────────  Reversal code  0x0：Normal
+                                            0x4：Horizontal flip
+                                            0x8：Vertical flip
+                                            0xC：Both
+	*/
 } XSP_SET_ARG;
 
 // 複合スプライトのフレームデータ構造体

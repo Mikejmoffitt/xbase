@@ -1,6 +1,5 @@
-	.text
+	.bss
 
-# Storage for a2. Abuse of .text for faster access...
 c_a2_sav:	ds.l	1
 c_d2_sav:	ds.l	1
 c_savret:	ds.l	1
@@ -19,15 +18,18 @@ c_savret:	ds.l	1
 	.globl	\fname
 	.type	\fname,%function
 \fname:
-	move.l	a2, (c_a2_sav).w
-	move.l	d2, (c_d2_sav).w
-	move.l	(sp)+, (c_savret).w
-	bsr	_\fname
-	move.l	(c_a2_sav).w, a2
-	move.l	(c_d2_sav).w, d2
-	move.l	(c_savret).w, a0
+	/* stack: reta, arg3, arg2, arg1, arg0 */
+	move.l	a2, c_a2_sav
+	move.l	d2, c_d2_sav
+	move.l	(sp)+, c_savret  /* c_savret takes reta */
+	/* stack:       arg3, arg2, arg1, arg0 */
+	bsr	_\fname  /* -= reta, += reta */
+	/* stack:       arg3, arg2, arg1, arg0 */
+	move.l	c_d2_sav, d2
+	move.l	c_a2_sav, a2
+	/* restore reta from before */
+	move.l	c_savret, a0
 	jmp	(a0)
-	rts
 	.endm
 
 	FuncDirect	xsp_on

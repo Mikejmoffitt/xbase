@@ -106,4 +106,33 @@ static inline void xb_vidcon_set_pcg_color(uint16_t index, uint16_t val)
 	*p = val;
 }
 
+static inline void xb_vidcon_set_gp_pal(uint16_t palno, const uint16_t *src)
+{
+	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_GP_PAL_BASE;
+	p = &p[palno * 16];
+	for (uint16_t i = 0; i < 16; i++)
+	{
+		p[i] = src[i];
+	}
+}
+
+static inline void xb_vidcon_set_text_pal(const uint16_t *src)
+{
+	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_TX_PAL_BASE;
+	for (uint16_t i = 0; i < 16; i++)
+	{
+		p[i] = src[i];
+	}
+}
+
+static inline void xb_vidcon_set_pcg_pal(uint16_t palno, const uint16_t *src)
+{
+	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_PCG_PAL_BASE;
+	p = &p[palno * 16];
+	for (uint16_t i = 0; i < 16; i++)
+	{
+		p[i] = src[i];
+	}
+}
+
 #endif // X68K_VIDCON_H
