@@ -141,6 +141,12 @@ def macros(line):
 			line = line.replace("\\RV10=0", "!\\RV10")
 		return line
 
+def awful_flg_hack(line):
+	if ("#%0000_0011,XSP_flg") not in line:
+		return line
+	line = line.replace("XSP_flg", "(XSP_flg).l")
+	return line
+
 
 def handle_set(line):
 	if line[0] == ';':
@@ -306,6 +312,7 @@ def parse_all(lines, out_f):
 		line = offset(line)
 		line = ds(line)
 		line = binary_exp(line)
+		line = awful_flg_hack(line)
 		line = line.replace('', '')
 		# Hork up declarations of the C function names
 		if False and ".globl" in line:
