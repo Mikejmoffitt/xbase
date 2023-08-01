@@ -17,8 +17,8 @@ static inline void opm_write(uint8_t address, uint8_t data)
 
 static inline void reg_cache_w(uint8_t address, uint8_t data)
 {
-	s_dirty[address] = s_regs[address] != data;
 	s_regs[address] = data;
+	s_dirty[address] = true;
 }
 
 void xb_opm_commit(void)
@@ -39,10 +39,9 @@ void xb_opm_commit(void)
 	// Update higher value cached regs
 	for (uint16_t i = 0x20; i < ARRAYSIZE(s_regs); i++)
 	{
-		const uint8_t idx = i;
-		if (!s_dirty[idx]) continue;
-		opm_write(idx, s_regs[idx]);
-		s_dirty[idx] = false;
+		if (!s_dirty[i]) continue;
+		opm_write(i, s_regs[i]);
+		s_dirty[i] = false;
 	}
 }
 
