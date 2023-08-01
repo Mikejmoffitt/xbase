@@ -16,12 +16,16 @@ registers to the chip.
 // TODO: Define without negative value shifted left
 #define OPM_CLOCK_ADJUST ((-2 << 6) + 5)
 
+#define XB_OPM_VOICE_COUNT 8
+#define XB_OPM_OP_COUNT 4
+
 #include <stdint.h>
 #include <stdbool.h>
 
 typedef enum __attribute__((packed)) XBOpmReg
 {
 	OPM_REG_TEST_MODE = 0x01,
+	OPM_REG_LFO_RESET = 0x02,
 	OPM_REG_KEY_ON = 0x08,
 	OPM_REG_NOISE = 0x0F,
 	OPM_REG_CLKA_UPPER = 0x10,
@@ -33,7 +37,7 @@ typedef enum __attribute__((packed)) XBOpmReg
 	OPM_REG_CONTROL = 0x1B,
 	// These registers are repeated 8 times each, for CH.A-CH.H.
 	OPM_CH_PAN_FL_CON = 0x20,
-	OPM_CH_OCT_NOTE = 0x28,
+	OPM_CH_OCT_NOTE = 0x28,  // AKA KC
 	OPM_CH_KF = 0x30,
 	OPM_CH_PMS_AMS = 0x38,
 	// These registers are repeated 8 times in an inner set for the channels,
@@ -96,19 +100,25 @@ typedef enum __attribute__((packed)) XBOpmNote
 	OPM_NOTE_X3 = 0xF,
 } XBOpmNote;
 
-// Call when you are done updating OPM state.
-void xb_opm_commit(void);
+//
+// Interface and config
+//
 
-// TODO: Enum for status bits.
 uint8_t opm_status(void);
 void xb_opm_set_test_mode(bool en);
 void xb_opm_set_lfo_reset(bool en);
-// Channel: 0 - 7
-// SN:     0 - F
+
+// Call when you are done updating cached registers.
+void xb_opm_commit(void);
+
+//
+// Direct registers
+//
+// These registers are updated immediately.
+//
+
 void xb_opm_set_key_on(uint8_t channel, uint8_t sn);
-// fnoise(Hz) = 4MHZ / (32 * nfreq)
-// Nfreq:   0 - 31
-void xb_opm_set_noise(bool en, uint8_t nfreq);
+
 // Period:  0 - 1023
 // Ta(sec) = (64 * (1024 - period)) / CLK
 void xb_opm_set_clka_period(uint16_t period);
@@ -116,6 +126,16 @@ void xb_opm_set_clka_period(uint16_t period);
 // Ta(sec) = (1024 * (256 - period)) / CLK
 void xb_opm_set_clkb_period(uint8_t period);
 void xb_opm_set_timer_flags(XBOpmTimerFlag flags);
+
+//
+// Cached registers
+//
+// These registers are updated in one batch by a call to xb_opm_commit().
+//
+
+// fnoise(Hz) = 4MHZ / (32 * nfreq)
+// Nfreq:   0 - 31
+void xb_opm_set_noise(bool en, uint8_t nfreq);
 void xb_opm_set_lfo_freq(uint8_t freq);
 // Depth:  0 - 127
 void xb_opm_set_lfo_am_depth(uint8_t depth);
@@ -133,6 +153,9 @@ void xb_opm_set_lr_fl_con(uint8_t channel, XBOpmPan pan, uint8_t fl,
 // Octave:  0 - 7
 // Note:    XBOpmNote values (0 - F)
 void xb_opm_set_oct_note(uint8_t channel, uint8_t octave, XBOpmNote note);
+// Channel: 0 - 7
+// kc:      Direct KC data
+void xb_opm_set_kc(uint8_t channel, uint8_t kc);
 // Channel:  0 - 7
 // Fraction: 0 - 63
 void xb_opm_set_key_fraction(uint8_t channel, uint8_t fraction);
@@ -144,7 +167,7 @@ void xb_opm_set_pms_ams(uint8_t channel, uint8_t pms, uint8_t ams);
 // Op:      0 - 7
 // DT1:     0 - 7
 // Mul:     0 - 7
-void xb_opm_set_d1t_mul(uint8_t channel, uint8_t op, uint8_t dt1, uint8_t mul);
+void xb_opm_set_dt1_mul(uint8_t channel, uint8_t op, uint8_t dt1, uint8_t mul);
 // Channel: 0 - 7
 // Op:      0 - 7
 // TL:      0 - 127

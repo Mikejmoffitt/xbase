@@ -21,9 +21,9 @@ the register commit occurs during video blank.
 #include "xbase/memmap.h"
 
 // RGB palette entry macro
-#define PAL_RGB5(r, g, b) ( (((r) & 0x1F) << 6) | (((g) & 0x1F) << 11) | (((b) & 0x1F) << 1) )
-#define PAL_RGB4(r, g, b) ( (((r << 1) & 0x1F) << 6) | (((g << 1) & 0x1F) << 11) | (((b << 1) & 0x1F) << 1) )
-#define PAL_RGB8(r, g, b) ( (((r >> 3) & 0x1F) << 6) | (((g >> 3) & 0x1F) << 11) | (((b >> 3) & 0x1F) << 1) )
+#define XB_PAL_RGB5(r, g, b) ( (((r) & 0x1F) << 6) | (((g) & 0x1F) << 11) | (((b) & 0x1F) << 1) )
+#define XB_PAL_RGB4(r, g, b) ( (((r << 1) & 0x1F) << 6) | (((g << 1) & 0x1F) << 11) | (((b << 1) & 0x1F) << 1) )
+#define XB_PAL_RGB8(r, g, b) ( (((r >> 3) & 0x1F) << 6) | (((g >> 3) & 0x1F) << 11) | (((b >> 3) & 0x1F) << 1) )
 
 /*
 
