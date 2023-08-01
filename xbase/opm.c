@@ -26,7 +26,7 @@ void xb_opm_commit(void)
 	// Not all low value regs are used
 	static const uint8_t kreglist[] =
 	{
-		0x0F, 0x18, 0x19, 0x1B, 0x20
+		0x0F, 0x18, 0x19, 0x1B
 	};
 	for (uint16_t i = 0; i < ARRAYSIZE(kreglist); i++)
 	{
@@ -37,7 +37,7 @@ void xb_opm_commit(void)
 	}
 
 	// Update higher value cached regs
-	for (uint16_t i = 0x28; i < ARRAYSIZE(s_regs); i++)
+	for (uint16_t i = 0x20; i < ARRAYSIZE(s_regs); i++)
 	{
 		const uint8_t idx = i;
 		if (!s_dirty[idx]) continue;
