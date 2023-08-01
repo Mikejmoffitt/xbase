@@ -114,7 +114,8 @@ uint8_t xb_mfp_read_gpdr(void);
 // Register NULL to remove an association.
 // This function is a proper interrupt handler, so please ensure it returns
 // with `rte`. For C functions, use __attribute__(("interrupt")).
-void xb_mfp_set_interrupt(uint8_t vector, void (*interrupt_handler)(void));
+// Returns a pointer to whatever was previously registered.
+void *xb_mfp_set_interrupt(uint8_t vector, void (*interrupt_handler)(void));
 
 // Enable or disable interrupt generation for a vector.
 void xb_mfp_set_interrupt_enable(uint8_t vector, bool enabled);

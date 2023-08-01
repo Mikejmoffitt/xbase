@@ -38,9 +38,9 @@ uint8_t xb_mfp_read_gpdr(void)
 	return s_mfp->gpdr;
 }
 
-void xb_mfp_set_interrupt(uint8_t vector, void (*interrupt_handler)(void))
+void *xb_mfp_set_interrupt(uint8_t vector, void (*interrupt_handler)(void))
 {
-	_iocs_b_intvcs(vector, interrupt_handler);
+	return _iocs_b_intvcs(vector, interrupt_handler);
 }
 
 void xb_mfp_set_interrupt_enable(uint8_t vector, bool enabled)
