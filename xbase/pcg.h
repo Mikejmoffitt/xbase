@@ -18,6 +18,7 @@ I have placed my notes on the PCG registers in doc/pcg.txt.
 #define XBASE_PCG_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "xbase/memmap.h"
 
 // Attributes to specify sprite and backdrop tiles
@@ -64,15 +65,15 @@ typedef struct XBPcgCfg
 void xb_pcg_init(const XBPcgCfg *c);
 
 // Turn off the display for faster transfer
-void xb_pcg_set_disp_en(uint8_t en);
+void xb_pcg_set_disp_en(bool en);
 
 // Change the mappings for BG1 and BG0 nametables
 void xb_pcg_set_bg1_txsel(uint8_t t);
 void xb_pcg_set_bg0_txsel(uint8_t t);
 
 // Enable or disable BG layer display
-void xb_pcg_set_bg1_enable(uint8_t en);
-void xb_pcg_set_bg0_enable(uint8_t en);
+void xb_pcg_set_bg1_enable(bool en);
+void xb_pcg_set_bg0_enable(bool en);
 
 // These functions are slower than just working with pointers to PCG_BGx_NAME,
 // but may be helpful for debugging or small changes.

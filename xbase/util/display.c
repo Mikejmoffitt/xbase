@@ -12,7 +12,7 @@ static void apply_mode(const XBDisplayMode *mode)
 	// sprite line buffer. Without this, the right half of the screen may be
 	// filled with randomly colored vertical lines when forcing the PCG to
 	// use 8x8 BG tile pacing in a high resolution mode.
-	static const X68kPcgCfg hires_hack_pcg =
+	static const XBPcgCfg hires_hack_pcg =
 	{
 		0x00FF, 0x0015, 0x001C, 0x0011
 	};

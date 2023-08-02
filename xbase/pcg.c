@@ -52,7 +52,7 @@ void xb_pcg_init(const XBPcgCfg *c)
 }
 
 // Set to CPU(1) or display(0)
-void xb_pcg_set_disp_en(uint8_t en)
+void xb_pcg_set_disp_en(bool en)
 {
 	s_xb_pcg_ctrl_cache &= ~(0x0200);
 	s_xb_pcg_ctrl_cache |= (en ? 0x0200 : 0x0000);
@@ -75,13 +75,13 @@ void xb_pcg_set_bg0_txsel(uint8_t t)
 }
 
 // Enable or disable BG layer display
-void xb_pcg_set_bg1_enable(uint8_t en)
+void xb_pcg_set_bg1_enable(bool en)
 {
 	s_xb_pcg_ctrl_cache &= ~(0x0008);
 	s_xb_pcg_ctrl_cache |= (en ? 0x08 : 0x000);
 	XB_PCG_CTRL_R = s_xb_pcg_ctrl_cache;
 }
-void xb_pcg_set_bg0_enable(uint8_t en)
+void xb_pcg_set_bg0_enable(bool en)
 {
 	s_xb_pcg_ctrl_cache &= ~(0x0001);
 	s_xb_pcg_ctrl_cache |= (en ? 0x001 : 0x000);
