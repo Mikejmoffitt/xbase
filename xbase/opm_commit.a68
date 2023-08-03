@@ -23,7 +23,7 @@ s_opm_regs:	ds.w	0x100
 xb_opm_write:
 .set	SPID, 4
 .set	ARG_ADDR, SPID+3  /* byte */
-.set	ARG_DATA, SPID+4+4  /* byte */
+.set	ARG_DATA, SPID+4+3  /* byte */
 	lea	XB_OPM_BASE, a1
 	/* Commit data to OPM immediately */
 0:
