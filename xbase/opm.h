@@ -108,20 +108,21 @@ uint8_t opm_status(void);
 void xb_opm_set_test_mode(bool en);
 void xb_opm_set_lfo_reset(bool en);
 
-// Call when you are done updating cached registers.
-void xb_opm_commit(void);
-
 //
 // Direct registers
 //
 // These registers are updated immediately.
 //
 
+// Writes a value immediately to the OPM and clears associated cached data.
+void xb_opm_write(uint8_t addr, uint8_t data);
+
 void xb_opm_set_key_on(uint8_t channel, uint8_t sn);
 
 // Period:  0 - 1023
 // Ta(sec) = (64 * (1024 - period)) / CLK
 void xb_opm_set_clka_period(uint16_t period);
+
 // Period:  0 - 255
 // Ta(sec) = (1024 * (256 - period)) / CLK
 void xb_opm_set_clkb_period(uint8_t period);
@@ -130,8 +131,15 @@ void xb_opm_set_timer_flags(XBOpmTimerFlag flags);
 //
 // Cached registers
 //
-// These registers are updated in one batch by a call to xb_opm_commit().
+// These functions are helpers that ultimately call xb_opm_set().
 //
+
+// Sets a cached register value. Changed data is sent in a batch to the OPM upon
+// calling xb_opm_commit().
+void xb_opm_set(uint8_t addr, uint8_t data);
+
+// Call when you are done updating cached registers.
+void xb_opm_commit(void);
 
 // fnoise(Hz) = 4MHZ / (32 * nfreq)
 // Nfreq:   0 - 31

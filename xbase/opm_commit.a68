@@ -1,0 +1,99 @@
+
+	.include	"xbase/memmap.inc"
+
+	.section	.bss
+
+# OPM register cache.
+# 0x100 entries exist, mapping to the address space of the OPM.
+# The lower byte contains the data.
+# The upper byte is a "dirty" marker, indicating that this data should be
+# transmitted upon a call to xb_opm_commit(), when bit 15 is set.
+
+s_opm_regs:	ds.w	0x100
+
+	.section	.text
+	.global	xb_opm_write
+	.global	xb_opm_set
+	.global	xb_opm_commit
+
+# ------------------------------------------------------------------------------
+# void xb_opm_write(uint8_t addr, uint8_t data)
+# ------------------------------------------------------------------------------
+
+xb_opm_write:
+.set	SPID, 4
+.set	ARG_ADDR, SPID+3  /* byte */
+.set	ARG_DATA, SPID+4+4  /* byte */
+	lea	XB_OPM_BASE, a1
+	/* Commit data to OPM immediately */
+0:
+	tst.b	3(a1)
+	bmi	0b
+	move.b	ARG_ADDR(sp), 1(a1)
+1:
+	tst.b	3(a1)
+	bmi	1b
+	move.b	ARG_DATA(sp), 3(a1)
+
+	/* Erase cache for this reg */
+	lea	s_opm_regs, a0
+	moveq	#0, d0
+	move.b	ARG_ADDR(sp), d0
+	add.w	d0, d0
+	adda.w	d0, a0
+	clr.w	(a0)
+	rts
+
+# ------------------------------------------------------------------------------
+# void xb_opm_set(uint8_t addr, uint8_t data)
+# ------------------------------------------------------------------------------
+
+xb_opm_set:
+.set	SPID, 4
+.set	ARG_ADDR, SPID+3  /* byte */
+.set	ARG_DATA, SPID+4+3  /* byte */
+	/* Set cache for this reg */
+	lea	s_opm_regs, a0
+	moveq	#0, d0
+	move.b	ARG_ADDR(sp), d0
+	add.w	d0, d0
+	adda.w	d0, a0
+
+	move.w	#0x8000, d0
+	move.b	ARG_DATA(sp), d0
+	move.w	d0, (a0)
+	rts
+
+# ------------------------------------------------------------------------------
+# void xb_opm_commit(void)
+# ------------------------------------------------------------------------------
+
+xb_opm_commit:
+	lea	s_opm_regs, a0
+	lea	XB_OPM_BASE, a1
+	moveq	#0, d0
+	move.w	#0x100-1, d1
+
+commit_top:
+	tst.w	(a0)
+	bpl	commit_next
+
+	/* Place OPM address in upper word, data in lower */
+0:
+	tst.b	3(a1)
+	bmi	0b
+	move.b	d0, 1(a1)
+
+1:
+	tst.b	3(a1)
+	bmi	1b
+	move.b	1(a0), 3(a1)
+
+	clr.w	(a0)
+
+commit_next:
+	addq	#1, d0
+	addq	#2, a0
+	dbf	d1, commit_top
+
+	rts
