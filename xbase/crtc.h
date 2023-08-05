@@ -110,12 +110,12 @@ typedef struct XBCrtcTimingCfg
 	.... .zcc ...f vvhh
 	      ||     | | \__ Horizontal disp:  00 = 256 dots
 	      ||     | |                       01 = 512 dots
-	      ||     | |                       10 = invalid config?
-	      ||     | |                       11 = 768 dots (50MHz dotclock?) no good for PCG
+	      ||     | |                       10 = 768 dots
+	      ||     | |                       11 = Invalid (50MHz dotclock?)
 	      ||     | |
 	      ||     |  \___ Vertical disp:    00 = 256 dots
 	      ||     |                         01 = 512 dots
-	      ||     |                         10 = invalid config
+	      ||     |                         10 = invalid config (1024 vertical dots)
 	      ||     |                         11 = invalid config
 	      ||     |
 	      ||      \_____ Frequency:        0 = 15.98KHz
