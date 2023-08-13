@@ -70,8 +70,8 @@ typedef enum __attribute__((packed)) XBJoyBits
 {
 	XB_KEY_UP = 0x0001,
 	XB_KEY_DOWN = 0x0002,
-	XB_KEY_RIGHT = 0x0004,
-	XB_KEY_LEFT = 0x0008,
+	XB_KEY_LEFT = 0x0004,
+	XB_KEY_RIGHT = 0x0008,
 	XB_KEY_A = 0x0020,
 	XB_KEY_B = 0x0040,
 	// Extended additions.
