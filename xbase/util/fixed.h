@@ -16,10 +16,10 @@ typedef uint8_t ufix8_t;
 #endif  // XB_FIXED_BITS
 
 // Precision configuration
-#define FIX16_COEF (1 << XB_FIXED_BITS)
+#define FIX_COEF (1 << XB_FIXED_BITS)
 
 // Fixed point conversions
-#define INTTOFIX(x) ((fix_t)((x) * FIX32_COEF))
+#define INTTOFIX(x) ((x) * FIX_COEF)
 #define FIXTOINT(x) ((int)((x) / FIX_COEF))
 
 // Fixed point multiplication and division
