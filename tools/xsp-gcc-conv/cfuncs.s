@@ -1,35 +1,10 @@
-	.bss
-
-c_a2_sav:	ds.l	1
-c_d2_sav:	ds.l	1
-c_savret:	ds.l	1
-
 	.text
 
-# Functions that do not require any fussing.
+# Macro to expose a function.
 .macro	FuncDirect	fname
 	.globl	\fname
 	.type	\fname,%function
 \fname	=	_\fname
-	.endm
-
-# Functions that need A2 and D2 saved.
-.macro	FuncA2D2Sav	fname
-	.globl	\fname
-	.type	\fname,%function
-\fname:
-	/* stack: reta, arg3, arg2, arg1, arg0 */
-	move.l	a2, c_a2_sav
-	move.l	d2, c_d2_sav
-	move.l	(sp)+, c_savret  /* c_savret takes reta */
-	/* stack:       arg3, arg2, arg1, arg0 */
-	bsr	_\fname  /* -= reta, += reta */
-	/* stack:       arg3, arg2, arg1, arg0 */
-	move.l	c_d2_sav, d2
-	move.l	c_a2_sav, a2
-	/* restore reta from before */
-	move.l	c_savret, a0
-	jmp	(a0)
 	.endm
 
 	FuncDirect	xsp_on
@@ -40,10 +15,10 @@ c_savret:	ds.l	1
 	FuncDirect	xsp_mode
 	FuncDirect	xsp_objdat_set
 	FuncDirect	xsp_vsync
-	FuncA2D2Sav	xsp_set
-	FuncA2D2Sav	xobj_set
-	FuncA2D2Sav	xsp_set_st
-	FuncA2D2Sav	xobj_set_st
+	FuncDirect	xsp_set
+	FuncDirect	xobj_set
+	FuncDirect	xsp_set_st
+	FuncDirect	xobj_set_st
 	FuncDirect	xsp_out
 	FuncDirect	xsp_vertical
 	FuncDirect	xsp_vsyncint_on
