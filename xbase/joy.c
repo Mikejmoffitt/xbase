@@ -23,7 +23,7 @@ void xb_joy_poll(void)
 	{
 		g_xb_joy_prev[i] = g_xb_joy[i];
 
-		uint8_t pad = ((volatile uint8_t *)(XB_JOY_BASE))[i * 2];
+		uint8_t pad = ~((volatile uint8_t *)(XB_JOY_BASE))[i * 2];
 
 		if (s_mode[i] == XB_JOY_MODE_EXTENDED)
 		{
