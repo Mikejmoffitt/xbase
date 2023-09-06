@@ -18,9 +18,12 @@ void xspman_init(void);
 // 2) File registration
 //
 
-// Call the following two functions for each sprite file you want to load.
-// For an XOBJ file call xspman_reg_xsp(), and for a regular PCG tile call
-// xspman_reg_sp().
+// Call the following functions for each sprite file you want to load.
+
+// Registers an XSB bundle file.
+// Returns the base sprite number for xobj_set(), or -1 on error.
+// Set pal to NULL if you do not need to load palette data.
+short xspman_reg_bundle(const char *fname_base, unsigned short *pal);
 
 // Registers an XSP file set.
 // Returns the base sprite number for xobj_set(), or -1 on error.
