@@ -17,7 +17,7 @@ typedef struct XBDisplayMode
 
 typedef struct XBDisplay
 {
-	const XBDisplayMode **modes;
+	const XBDisplayMode *modes;
 	int16_t num_modes;
 
 	int16_t current_mode;
@@ -25,7 +25,7 @@ typedef struct XBDisplay
 
 // Initialize with a list of display modes. The first mode from the list is
 // applied to the video chipset.
-void xb_display_init(XBDisplay *d, const XBDisplayMode **modes,
+void xb_display_init(XBDisplay *d, const XBDisplayMode *modes,
                      int16_t num_modes);
 
 // Get the current display mode information.

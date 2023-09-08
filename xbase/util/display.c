@@ -26,19 +26,19 @@ static void apply_mode(const XBDisplayMode *mode)
 
 // Initialize with a list of display modes. Mode 0 is applied to the video
 // chipset.
-void xb_display_init(XBDisplay *d, const XBDisplayMode **modes,
+void xb_display_init(XBDisplay *d, const XBDisplayMode *modes,
                      int16_t num_modes)
 {
 	d->modes = modes;
 	d->num_modes = num_modes;
 	d->current_mode = 0;
 
-	apply_mode(d->modes[0]);
+	apply_mode(&d->modes[0]);
 }
 
 const XBDisplayMode *xb_display_get_mode(const XBDisplay *d)
 {
-	return d->modes[d->current_mode];
+	return &d->modes[d->current_mode];
 }
 
 // Go to the next display mode.
@@ -49,5 +49,5 @@ void xb_display_cycle_mode(XBDisplay *d)
 	{
 		d->current_mode = 0;
 	}
-	apply_mode(d->modes[d->current_mode]);
+	apply_mode(&d->modes[d->current_mode]);
 }
