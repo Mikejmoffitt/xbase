@@ -19,11 +19,11 @@ typedef struct XBCrtcGenParam
 	uint16_t htotal;
 	uint16_t hsync;
 	uint16_t hstart;
-	uint16_t hend;
+	uint16_t hsize;
 	uint16_t vtotal;
 	uint16_t vsync;
 	uint16_t vstart;
-	uint16_t vend;
+	uint16_t vsize;
 	uint16_t ext_h_adj;
 	uint16_t crtc_flags;
 	int16_t pcg_mode;  // -1 for auto

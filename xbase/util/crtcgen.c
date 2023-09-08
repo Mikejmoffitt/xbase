@@ -43,12 +43,12 @@ void xb_crtcgen_set(const XBCrtcGenParam *param, XBDisplayMode *mode)
 	mode->crtc.htotal = param->htotal;
 	mode->crtc.hsync_length = param->hsync;
 	mode->crtc.hdisp_start = param->hstart;
-	mode->crtc.hdisp_end = param->hend;
+	mode->crtc.hdisp_end = param->hstart + param->hsize/8;
 
 	mode->crtc.vtotal = param->vtotal;
 	mode->crtc.vsync_length = param->vsync;
 	mode->crtc.vdisp_start = param->vstart;
-	mode->crtc.vdisp_end = param->vend;
+	mode->crtc.vdisp_end = param->vstart + param->vsize;
 
 	mode->crtc.ext_h_adjust = param->ext_h_adj;
 	mode->crtc.flags = param->crtc_flags;
