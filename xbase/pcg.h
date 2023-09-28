@@ -46,6 +46,7 @@ typedef enum __attribute__((packed)) XBPcgMode
 	XB_PCG_MODE_LH = 0x0010,  // Set for 31khz (line double) mode.
 	XB_PCG_MODE_VMODE = 0x0004,  // Set for 512-line mode.
 	XB_PCG_MODE_HMODE = 0x0001,  // Set for 512-dot mode; enables 16x16 tiles.
+	XB_PCG_MODE_CUT = 0x8000  // Disables output (?)
 } XBPcgMode;
 
 typedef struct XBPcgCfg
