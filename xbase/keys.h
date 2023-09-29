@@ -144,7 +144,7 @@ typedef enum XBKeyFlags
 {
 	XB_KEY_MOD_SHIFT     = 0x0001,  // Shift was held during this event.
 	XB_KEY_MOD_CTRL      = 0x0002,  // Control was held during this event.
-	XB_KEY_MOD_IS_REPEAT = 0x8000,  // This event comes from key repeat.
+	XB_KEY_MOD_IS_REPEAT = 0x4000,  // This event comes from key repeat.
 	XB_KEY_MOD_KEY_UP    = 0x8000,  // This event is a key release.
 } XBKeyFlags;
 
@@ -160,7 +160,11 @@ typedef struct XBKeyEvent
 //
 
 // Initialize key scanner.
-void xb_keys_init(void);
+// sense_list points to an array of XB_KEY_* values, indicating which keys
+// should be scanned for key up/down event generation. The list is terminated
+// with an XB_KEY_INVALID entry.
+// Passing in NULL will default to all keys being scanned.
+void xb_keys_init(const XBKey *sense_list);
 
 // Set the key repeat delay and rate in terms of poll() periods.
 // Pass a number <= 0 to reset to the default value.

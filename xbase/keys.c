@@ -20,10 +20,14 @@ typedef struct XBKeys
 	uint16_t key_r;  // Next read index
 
 	// Key repeat state
-	XBKey repeat_name;      // Key name for currently repeating key
+	XBKey repeat_key;      // Key name for currently repeating key
 	int16_t repeat_cnt;     // Counter that increments when key is held
 	int16_t repeat_delay;   // Delay setting
 	int16_t repeat_period;  // Repeat rate setting
+
+	// Key sensitivity list
+	XBKey sense_list[XB_KEY_INVALID];
+	uint16_t sense_list_size;
 } XBKeys;
 
 static XBKeys s_keys;
@@ -195,21 +199,35 @@ static inline bool key_negedge(XBKey key)
 	return prev && !now;
 }
 
-static inline void repeat_init(XBKey key)
-{
-	s_keys.repeat_name = key;
-	s_keys.repeat_cnt = 0;
-}
-
 //
 // Initialization and Configuration
 //
 
-void xb_keys_init(void)
+void xb_keys_init(const XBKey *sense_list)
 {
 	memset(&s_keys, 0, sizeof(s_keys));
-	s_keys.repeat_delay = XB_KEYS_DEFAULT_REPEAT_DELAY;
-	s_keys.repeat_period = XB_KEYS_DEFAULT_REPEAT_RATE;
+	xb_keys_set_repeat(-1, -1);
+	s_keys.repeat_key = XB_KEY_INVALID;
+
+	if (sense_list == NULL)
+	{
+		for (XBKey i = 0; i < XB_KEY_INVALID; i++)
+		{
+			s_keys.sense_list[i] = i;
+		}
+		s_keys.sense_list_size = ARRAYSIZE(s_keys.sense_list);
+	}
+	else
+	{
+		uint16_t i = 0;
+		while (sense_list[i] != XB_KEY_INVALID &&
+		       i < ARRAYSIZE(s_keys.sense_list))
+		{
+			s_keys.sense_list[i] = sense_list[i];
+			i++;
+		}
+		s_keys.sense_list_size = i;
+	}
 }
 
 void xb_keys_set_repeat(int16_t delay, int16_t rate)
@@ -251,39 +269,41 @@ void xb_keys_poll(void)
 	}
 
 	// Generate events
-	for (uint16_t i = 0; i < XB_KEY_INVALID; i++)
+	for (uint16_t i = 0; i < s_keys.sense_list_size; i++)
 	{
-		const bool posedge = key_posedge(i);
-		const bool negedge = key_negedge(i);
+		const XBKey key = s_keys.sense_list[i];
+		const bool posedge = key_posedge(key);
+		const bool negedge = key_negedge(key);
 		if (!posedge && !negedge) continue;
-		event_push(i,
+		event_push(key,
 		           /*repeat=*/false,
 		           /*key_up=*/negedge);
 		// Freshly pressed key resets the key repeat logic
-		if (posedge && s_keys.repeat_name != i)
+		if (posedge && s_keys.repeat_key != key)
 		{
-			s_keys.repeat_name = i;
+			s_keys.repeat_key = key;
 			s_keys.repeat_cnt = -s_keys.repeat_delay;
 		}
 	}
 
+
 	// Key repeat logic
-	if (s_keys.repeat_name != XB_KEY_INVALID)
+	if (s_keys.repeat_key != XB_KEY_INVALID)
 	{
-		if (key_is_held(s_keys.repeat_name))
+		if (key_is_held(s_keys.repeat_key))
 		{
 			s_keys.repeat_cnt++;
 			if (s_keys.repeat_cnt >= s_keys.repeat_period)
 			{
 				s_keys.repeat_cnt = 0;
-				event_push(s_keys.repeat_name,
+				event_push(s_keys.repeat_key,
 				           /*repeat=*/true,
 				           /*key_up=*/false);
 			}
 		}
 		else
 		{
-			s_keys.repeat_name = XB_KEY_INVALID;
+			s_keys.repeat_key = XB_KEY_INVALID;
 		}
 	}
 }
