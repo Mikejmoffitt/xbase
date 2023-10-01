@@ -94,7 +94,7 @@ static const XBKeyID kkey_table[] =
 	[XB_KEY_C] = {0x5, 0x10},
 	[XB_KEY_X] = {0x5, 0x08},
 	[XB_KEY_Z] = {0x5, 0x04},
-	[XB_KEY_CLOSED_BRACKED] = {0x5, 0x02},
+	[XB_KEY_CLOSED_BRACKET] = {0x5, 0x02},
 	[XB_KEY_COLON] = {0x5, 0x01},
 
 	[XB_KEY_DEL] = {0x6, 0x80},
