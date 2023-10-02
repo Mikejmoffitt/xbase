@@ -124,7 +124,7 @@ void xb_opm_set_key_on(uint8_t channel, uint8_t sn);
 void xb_opm_set_clka_period(uint16_t period);
 
 // Period:  0 - 255
-// Ta(sec) = (1024 * (256 - period)) / CLK
+// Tb(sec) = (1024 * (256 - period)) / CLK
 void xb_opm_set_clkb_period(uint8_t period);
 void xb_opm_set_timer_flags(XBOpmTimerFlag flags);
 
