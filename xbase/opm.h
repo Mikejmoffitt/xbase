@@ -218,7 +218,15 @@ static inline void xb_opm_set_lfo_reset(bool en)
 	xb_opm_write(OPM_REG_LFO_RESET, en ? 0x02 : 0x00);
 }
 
-void xb_opm_write(uint8_t addr, uint8_t data);  // --> opm_commit.a68
+void xb_opm_write(uint8_t addr, uint8_t data)
+{
+	volatile uint8_t *opm = (volatile uint8_t *)(XB_OPM_BASE + 1);
+	while (opm[2] & 0x80) __asm__ volatile("nop");
+	opm[0] = addr;
+	g_xb_opm_reg_cache[addr] = 0;
+	while (opm[2] & 0x80) __asm__ volatile("nop");
+	opm[2] = data;
+}	// --> opm_commit.a68
 
 static inline void xb_opm_set_key_on(uint8_t channel, uint8_t sn)
 {

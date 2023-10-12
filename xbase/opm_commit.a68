@@ -12,36 +12,7 @@ g_xb_opm_reg_cache:	ds.w	0x100
 	.global	g_xb_opm_reg_cache
 
 	.section	.text
-	.global	xb_opm_write
 	.global	xb_opm_commit
-
-# ------------------------------------------------------------------------------
-# void xb_opm_write(uint8_t addr, uint8_t data)
-# ------------------------------------------------------------------------------
-
-xb_opm_write:
-.set	SPID, 4
-.set	ARG_ADDR, SPID+3  /* byte */
-.set	ARG_DATA, SPID+4+3  /* byte */
-	lea	XB_OPM_BASE, a1
-	/* Commit data to OPM immediately */
-0:
-	tst.b	3(a1)
-	bmi	0b
-	move.b	ARG_ADDR(sp), 1(a1)
-1:
-	tst.b	3(a1)
-	bmi	1b
-	move.b	ARG_DATA(sp), 3(a1)
-
-	/* Erase cache for this reg */
-	lea	g_xb_opm_reg_cache, a0
-	moveq	#0, d0
-	move.b	ARG_ADDR(sp), d0
-	add.w	d0, d0
-	adda.w	d0, a0
-	clr.w	(a0)
-	rts
 
 # ------------------------------------------------------------------------------
 # void xb_opm_commit(void)
