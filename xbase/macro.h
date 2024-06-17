@@ -1,5 +1,6 @@
-#ifndef XBASE_MACRO_H
-#define XBASE_MACRO_H
+#pragma once
+
+#define BITVAL(x) (1 << x)
 
 #define NUM_IS_POW2(x) ((x & (x - 1)) == 0)
 
@@ -20,5 +21,3 @@
        __typeof__ (b) _b = (b); \
        _a < _b ? _a : _b; })
 #endif  // MIN
-
-#endif  // XBASE_MACRO_H

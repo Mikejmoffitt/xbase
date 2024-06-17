@@ -1,34 +1,29 @@
-
-	.include	"xbase/memmap.inc"
-
+#include	"xbase/xbase.h"
 	.section	.bss
 
-# OPM register cache.
-# 0x100 entries exist, mapping to the address space of the OPM.
-# The lower byte contains the data.
-# The upper byte is a "dirty" marker, indicating that this data should be
-# transmitted upon a call to xb_opm_commit(), when bit 15 is set.
-g_xb_opm_reg_cache:	ds.w	0x100
-	.global	g_xb_opm_reg_cache
+; OPM register cache.
+; $100 entries exist, mapping to the address space of the OPM.
+; The lower byte contains the data.
+; The upper byte is a "dirty" marker, indicating that this data should be
+; transmitted upon a call to xb_opm_commit(), when bit 15 is set.
+g_xb_opm_reg_cache:	ds.w	$100
+	.global		g_xb_opm_reg_cache
 
 	.section	.text
-	.global	xb_opm_commit
+	.global		xb_opm_commit
 
-# ------------------------------------------------------------------------------
-# void xb_opm_commit(void)
-# ------------------------------------------------------------------------------
-
+; void xb_opm_commit(void)
 xb_opm_commit:
 	lea	g_xb_opm_reg_cache, a0
 	lea	XB_OPM_BASE, a1
-	moveq	#0, d0
-	move.w	#0x100-1, d1
+	moveq	#0, d0       ; register number
+	move.w	#$100-1, d1  ; count
 
 commit_top:
 	tst.w	(a0)
-	bpl	commit_next
+	bpl.s	commit_next
 
-	/* Place OPM address in upper word, data in lower */
+	; Place OPM address in upper word, data in lower
 0:
 	tst.b	3(a1)
 	bmi	0b

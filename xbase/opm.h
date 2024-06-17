@@ -1,107 +1,107 @@
-/*
-
-XBase Yamaha OPM / YM2151 Hardware Access Functions (opm)
-c. Michael Moffitt 2021-2022
-
-This file contains functions for interacting with the OPM sound source.
-Register writes are written to a static cache, rather than being sent
-immediately to the chip. A final commit function writes any changed
-registers to the chip.
-
-*/
-
-#ifndef XB_OPM_H
-#define XB_OPM_H
+//
+// XBase Yamaha OPM / YM2151 Hardware Access Functions (opm)
+// (c) Michael Moffitt 2021-2024
+//
+// This file contains functions for interacting with the OPM sound source.
+// Register writes are written to a static cache, rather than being sent
+// immediately to the chip. A final commit function writes any changed
+// registers to the chip.
+#pragma once
 
 // TODO: Define without negative value shifted left
-#define OPM_CLOCK_ADJUST ((-2 << 6) + 5)
+#define XB_OPM_CLOCK_ADJUST ((-2 << 6) + 5)
 
 #define XB_OPM_VOICE_COUNT 8
 #define XB_OPM_OP_COUNT 4
 
+#ifndef __ASSEMBLER__
 #include <stdint.h>
 #include <stdbool.h>
 #include "xbase/memmap.h"
+#endif
 
-typedef enum __attribute__((packed)) XBOpmReg
-{
-	OPM_REG_TEST_MODE = 0x01,
-	OPM_REG_LFO_RESET = 0x02,
-	OPM_REG_KEY_ON = 0x08,
-	OPM_REG_NOISE = 0x0F,
-	OPM_REG_CLKA_UPPER = 0x10,
-	OPM_REG_CLKA_LOWER = 0x11,
-	OPM_REG_CLKB = 0x12,
-	OPM_REG_TIMER_FLAGS = 0x14,
-	OPM_REG_LFO_FREQ = 0x18,
-	OPM_REG_LFO_DEPTH = 0x19,
-	OPM_REG_CONTROL = 0x1B,
-	// These registers are repeated 8 times each, for CH.A-CH.H.
-	OPM_CH_PAN_FL_CON = 0x20,
-	OPM_CH_OCT_NOTE = 0x28,  // AKA KC
-	OPM_CH_KF = 0x30,
-	OPM_CH_PMS_AMS = 0x38,
-	// These registers are repeated 8 times in an inner set for the channels,
-	// and then externally four times for the four operators.
-	// For example, 0x40 is CH.A OP1; 0x47 is CH.H OP1. 0x48 is CH.A OP2, etc.
-	OPM_CH_DT1_MUL = 0x40,
-	OPM_CH_TL = 0x60,
-	OPM_CH_KS_AR = 0x80,
-	OPM_CH_AME_D1R = 0xA0,
-	OPM_CH_DT2_D2R = 0xC0,
-	OPM_CH_D1L_RR = 0xE0,
+//
+// OPM register numbers.
+//
+#define OPM_REG_TEST_MODE 0x01
+#define OPM_REG_LFO_RESET 0x02
+#define OPM_REG_KEY_ON 0x08
+#define OPM_REG_NOISE 0x0F
+#define OPM_REG_CLKA_UPPER 0x10
+#define OPM_REG_CLKA_LOWER 0x11
+#define OPM_REG_CLKB 0x12
+#define OPM_REG_TIMER_FLAGS 0x14
+#define OPM_REG_LFO_FREQ 0x18
+#define OPM_REG_LFO_DEPTH 0x19
+#define OPM_REG_CONTROL 0x1B
+// These registers are repeated 8 times each for CH.A-CH.H.
+#define OPM_CH_PAN_FL_CON 0x20
+#define OPM_CH_OCT_NOTE 0x28  // AKA KC
+#define OPM_CH_KF 0x30
+#define OPM_CH_PMS_AMS 0x38
+// These registers are repeated 8 times in an inner set for the channels
+// and then externally four times for the four operators.
+// For example 0x40 is CH.A OP1; 0x47 is CH.H OP1. 0x48 is CH.A OP2 etc.
+#define OPM_CH_DT1_MUL 0x40
+#define OPM_CH_TL 0x60
+#define OPM_CH_KS_AR 0x80
+#define OPM_CH_AME_D1R 0xA0
+#define OPM_CH_DT2_D2R 0xC0
+#define OPM_CH_D1L_RR 0xE0
 
-	OPM_REG_MAX = 0xFF
-} XBOpmReg;
+#define OPM_REG_MAX 0xFF
 
-typedef enum __attribute__((packed)) XBOpmTimerFlag
-{
-	OPM_TIMER_FLAG_CSM       = 0x80,
-	OPM_TIMER_FLAG_F_RESET_B = 0x20,
-	OPM_TIMER_FLAG_F_RESET_A = 0x10,
-	OPM_TIMER_FLAG_IRQ_EN_B  = 0x08,
-	OPM_TIMER_FLAG_IRQ_EN_A  = 0x04,
-	OPM_TIMER_FLAG_LOAD_B    = 0x02,
-	OPM_TIMER_FLAG_LOAD_A    = 0x01,
-} XBOpmTimerFlag;
+// OPM Timer Flags
+#define OPM_TIMER_FLAG_CSM       0x80
+#define OPM_TIMER_FLAG_F_RESET_B 0x20
+#define OPM_TIMER_FLAG_F_RESET_A 0x10
+#define OPM_TIMER_FLAG_IRQ_EN_B  0x08
+#define OPM_TIMER_FLAG_IRQ_EN_A  0x04
+#define OPM_TIMER_FLAG_LOAD_B    0x02
+#define OPM_TIMER_FLAG_LOAD_A    0x01
 
-typedef enum __attribute__((packed)) XBOpmLfoWave
-{
-	LFO_WAVE_SAW = 0x00,
-	LFO_WAVE_RECTANGLE,
-	LFO_WAVE_TRIANGLE,
-	LFO_WAVE_RAND,
-} XBOpmLfoWave;
+// OPM LFO Waves
+#define LFO_WAVE_SAW 0x00
+#define LFO_WAVE_RECTANGLE
+#define LFO_WAVE_TRIANGLE
+#define LFO_WAVE_RAND
 
-typedef enum __attribute__((packed)) XBOpmPan
-{
-	OPM_PAN_NONE = 0x00,
-	OPM_PAN_LEFT = 0x40,
-	OPM_PAN_RIGHT = 0x80,
-	OPM_PAN_BOTH = (OPM_PAN_LEFT | OPM_PAN_RIGHT),
-} XBOpmPan;
+// OPM pan values
+#define OPM_PAN_NONE 0x00
+#define OPM_PAN_LEFT 0x40
+#define OPM_PAN_RIGHT 0x80
+#define OPM_PAN_BOTH (OPM_PAN_LEFT | OPM_PAN_RIGHT)
 
-typedef enum __attribute__((packed)) XBOpmNote
-{
-	OPM_NOTE_CS = 0x0,
-	OPM_NOTE_D  = 0x1,
-	OPM_NOTE_DS = 0x2,
-	OPM_NOTE_E  = 0x4,
-	OPM_NOTE_F  = 0x5,
-	OPM_NOTE_FS = 0x6,
-	OPM_NOTE_G  = 0x8,
-	OPM_NOTE_GS = 0x9,
-	OPM_NOTE_A  = 0xA,
-	OPM_NOTE_AS = 0xC,
-	OPM_NOTE_B  = 0xD,
-	OPM_NOTE_C  = 0xE,
-	// "invalid" notes
-	OPM_NOTE_X1 = 0x7,
-	OPM_NOTE_X2 = 0xB,
-	OPM_NOTE_X3 = 0xF,
-} XBOpmNote;
+// OPM Notes
+#define OPM_NOTE_CS 0x0
+#define OPM_NOTE_D  0x1
+#define OPM_NOTE_DS 0x2
+#define OPM_NOTE_E  0x4
+#define OPM_NOTE_F  0x5
+#define OPM_NOTE_FS 0x6
+#define OPM_NOTE_G  0x8
+#define OPM_NOTE_GS 0x9
+#define OPM_NOTE_A  0xA
+#define OPM_NOTE_AS 0xC
+#define OPM_NOTE_B  0xD
+#define OPM_NOTE_C  0xE
+// "invalid" notes
+#define OPM_NOTE_X1 0x7
+#define OPM_NOTE_X2 0xB
+#define OPM_NOTE_X3 0xF
 
+#ifdef __ASSEMBLER__
+	.global	g_xb_opm_reg_cache
+#else
 extern volatile uint16_t g_xb_opm_reg_cache[0x100];
+#endif
+
+
+#ifdef __ASSEMBLER__
+	.global	xb_opm_commit
+#else
+// Call when you are done updating cached registers.
+void xb_opm_commit(void);  // --> opm_commit.a68
 
 //
 // Interface and config
@@ -129,7 +129,7 @@ static inline void xb_opm_set_clka_period(uint16_t period);
 // Tb(sec) = (1024 * (256 - period)) / CLK
 static inline void xb_opm_set_clkb_period(uint8_t period);
 
-static inline void xb_opm_set_timer_flags(XBOpmTimerFlag flags);
+static inline void xb_opm_set_timer_flags(uint8_t flags);
 
 //
 // Cached registers
@@ -141,9 +141,6 @@ static inline void xb_opm_set_timer_flags(XBOpmTimerFlag flags);
 // calling xb_opm_commit().
 static inline void xb_opm_set(uint8_t addr, uint8_t data);
 
-// Call when you are done updating cached registers.
-void xb_opm_commit(void);  // --> opm_commit.a68
-
 // fnoise(Hz) = 4MHZ / (32 * nfreq)
 // Nfreq:   0 - 31
 static inline void xb_opm_set_noise(bool en, uint8_t nfreq);
@@ -153,17 +150,17 @@ static inline void xb_opm_set_lfo_am_depth(uint8_t depth);
 // Depth:  0 - 127
 static inline void xb_opm_set_lfo_pm_depth(uint8_t depth);
 static inline void xb_opm_set_control(bool ct1_adpcm_8mhz, bool ct2_fdc_ready,
-                        XBOpmLfoWave lfo_wave);
+                                      uint8_t lfo_wave);
 // Channel Enable: Use OPM_PAN_*_ENABLE bitfield
 // channel: 0 - 7
 // FL:      0 - 7
 // con:     0 - 7
-static inline void xb_opm_set_lr_fl_con(uint8_t channel, XBOpmPan pan, uint8_t fl,
+static inline void xb_opm_set_lr_fl_con(uint8_t channel, uint8_t pan, uint8_t fl,
                                         uint8_t con);
 // Channel: 0 - 7
 // Octave:  0 - 7
 // Note:    XBOpmNote values (0 - F)
-static inline void xb_opm_set_oct_note(uint8_t channel, uint8_t octave, XBOpmNote note);
+static inline void xb_opm_set_oct_note(uint8_t channel, uint8_t octave, uint8_t note);
 // Channel: 0 - 7
 // kc:      Direct KC data
 static inline void xb_opm_set_kc(uint8_t channel, uint8_t kc);
@@ -244,7 +241,7 @@ static inline void xb_opm_set_clkb_period(uint8_t period)
 	xb_opm_write(OPM_REG_CLKB, period);
 }
 
-static inline void xb_opm_set_timer_flags(XBOpmTimerFlag flags)
+static inline void xb_opm_set_timer_flags(uint8_t flags)
 {
 	xb_opm_write(OPM_REG_TIMER_FLAGS, flags);
 }
@@ -275,20 +272,20 @@ static inline void xb_opm_set_lfo_pm_depth(uint8_t depth)
 }
 
 static inline void xb_opm_set_control(bool ct1_adpcm_8mhz, bool ct2_fdc_ready,
-                        XBOpmLfoWave lfo_wave)
+                                      uint8_t lfo_wave)
 {
 	xb_opm_write(OPM_REG_CONTROL, (ct1_adpcm_8mhz ? 0x80 : 0x00) |
-	                             (ct2_fdc_ready ? 0x40 : 0x00) |
-	                             lfo_wave);
+	                              (ct2_fdc_ready ? 0x40 : 0x00) |
+	                              lfo_wave);
 }
 
-static inline void xb_opm_set_lr_fl_con(uint8_t channel, XBOpmPan pan, uint8_t fl,
+static inline void xb_opm_set_lr_fl_con(uint8_t channel, uint8_t pan, uint8_t fl,
                           uint8_t con)
 {
 	xb_opm_write(OPM_CH_PAN_FL_CON + channel, pan | (fl << 3) | con);
 }
 
-static inline void xb_opm_set_oct_note(uint8_t channel, uint8_t octave, XBOpmNote note)
+static inline void xb_opm_set_oct_note(uint8_t channel, uint8_t octave, uint8_t note)
 {
 	xb_opm_write(OPM_CH_OCT_NOTE + channel, note | (octave << 4 ));
 }
@@ -338,4 +335,4 @@ static inline void xb_opm_set_d1l_rr(uint8_t channel, uint8_t op, uint8_t d1l, u
 	xb_opm_write(OPM_CH_D1L_RR + channel + (8 * op), rr | (d1l << 4));
 }
 
-#endif  // XB_OPM_H
+#endif

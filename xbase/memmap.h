@@ -1,9 +1,5 @@
-#ifndef XBASE_MEMMAP_H
-#define XBASE_MEMMAP_H
+#pragma once
 
-#include <stdint.h>
-
-// VRAM memory mapping
 #define XB_GVRAM_BASE          0xC00000
 #define XB_TVRAM_BASE          0xE00000
 #define XB_CRTC_BASE           0xE80000
@@ -31,5 +27,3 @@
 
 #define XB_OPM_BASE            0xE90000
 #define XB_JOY_BASE            0xE9A001
-
-#endif  // XBASE_MEMMAP_H

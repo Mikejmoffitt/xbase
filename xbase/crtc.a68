@@ -1,0 +1,53 @@
+	#include "xbase/xbase.h"
+
+	.section	.bss
+	.global		g_xb_crtc_scroll
+g_xb_crtc_scroll:
+	ds.b		XBCrtcScrollCfg.len
+
+	.section	.text
+	.global		xb_crtc_set_timing
+	.global		xb_crtc_set_raster_interrupt
+	.global		xb_crtc_set_raster_interrupt_asm
+	.global		xb_crtc_set_scroll
+	.global		xb_crtc_set_control
+	.global		xb_crtc_set_control_asm
+
+; void xb_crtc_set_timing(const XBCrtcTimingCfg *)
+xb_crtc_set_timing:
+	movea.l	4(sp), a0
+	lea	XB_CRTC_BASE, a1
+	.rept	8/2
+	move.l	(a0)+, (a1)+
+	.endr
+	move.w	(a0)+, (a1)
+	move.w	(a0), XB_CRTC_BASE+$28
+	lea	20-8(a1), a1
+	move.w	(a0), a1
+	rts
+
+; void xb_crtc_set_raster_interrupt(uint16_t v)
+xb_crtc_set_raster_interrupt:
+	move.w	4+2(sp), d0
+	; fall-through
+xb_crtc_set_raster_interrupt_asm:
+	move.w	d0, XB_CRTC_BASE
+	rts
+
+; void xb_crtc_set_scroll(void);
+xb_crtc_set_scroll:
+	lea	g_xb_crtc_scroll, a0
+	lea	XB_CRTC_BASE+$14, a1
+	.rept	5-1
+	move.l	(a0)+, (a1)+
+	.endr
+	move.l	(a0), (a1)
+	rts
+
+; void xb_crtc_set_control(uint8_t v);
+xb_crtc_set_control:
+	move.w	4+2(sp), d0
+	; fall-through
+xb_crtc_set_control_asm:
+	move.b	d0, XB_CRTC_BASE+$481
+	rts

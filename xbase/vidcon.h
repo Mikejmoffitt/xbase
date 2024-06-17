@@ -13,12 +13,12 @@ copies to the actual hardware registers, call xb_vidcon_commit_regs(). Ideally,
 the register commit occurs during video blank.
 
 */
+#pragma once 
 
-#ifndef XB_VIDCON_H
-#define XB_VIDCON_H
-
+#ifndef __ASSEMBLER__
 #include <stdint.h>
 #include "xbase/memmap.h"
+#endif
 
 // RGB palette entry macro
 #define XB_PAL_RGB5(r, g, b) ( (((r) & 0x1F) << 6) | (((g) & 0x1F) << 11) | (((b) & 0x1F) << 1) )
@@ -37,6 +37,13 @@ flags = 0x007F;  // Enable all layers.
 
 // TODO: Enums for screen, prio, and flag registers.
 
+#ifdef __ASSEMBLER__
+	.struct 0
+XBVidconCfg.screen:	ds.w 1
+XBVidconCfg.prio:	ds.w 1
+XBVidconCfg.flags:	ds.w 1
+XBVidconCfg.len:
+#else
 typedef struct XBVidconCfg
 {
 	// R0: Screen
@@ -79,7 +86,11 @@ typedef struct XBVidconCfg
 	// .... .... .... ...0 GP0 enable
 	uint16_t flags;
 } XBVidconCfg;
+#endif
 
+#ifdef __ASSEMBLER__
+	.global	xb_vidcon_init
+#else
 void xb_vidcon_init(const XBVidconCfg *c);
 
 // Graphics plane palette entries
@@ -134,5 +145,4 @@ static inline void xb_vidcon_set_pcg_pal(uint16_t palno, const uint16_t *src)
 		p[i] = src[i];
 	}
 }
-
-#endif // X68K_VIDCON_H
+#endif

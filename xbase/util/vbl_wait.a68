@@ -1,0 +1,44 @@
+#include	"xbase/xbase.h"
+
+#define VBL_VECTOR XB_MFP_INT_VDISP
+
+	.section	.data
+vbl_wait_flag:	dc.w $FFFF
+	.section	.bss
+vbl_count:	ds.l 1
+	.section	.text
+
+// TODO: Is this the start or end of VDISP?
+vbl_isr:
+	clr.w	vbl_wait_flag
+	addq.l	#1, vbl_count
+	rte
+
+; void xb_vbl_wait_init(void)
+xb_vbl_wait_init:
+	pea	vbl_isr
+	moveq	#0, d0
+	move.w	#VBL_VECTOR, d0
+	move.l	d0, -(sp)
+	jsr	xb_mfp_set_interrupt
+	lea	8(sp), sp
+
+	moveq	#-1, d0    ; true
+	move.l	d0, -(sp)
+	add.w	#VBL_VECTOR+1, d0  ; 1 to make d0 0, then VBL_VECTOR
+	move.l	d0, -(sp)
+	jsr	xb_mfp_set_interrupt_enable
+	lea	8(sp), sp
+
+; void xb_vbl_wait(void)
+xb_vbl_wait:
+	move.w	#1, vbl_wait_flag
+wait_loop_top:
+	tst.w	vbl_wait_flag
+	bne.s	wait_loop_top
+	rts
+
+; uint32_t xb_vbl_get_frame_count(void)
+xb_vbl_get_frame_count:
+	move.l	vbl_count, d0
+	rts

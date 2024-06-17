@@ -1,8 +1,7 @@
-#ifndef FIXED_H
-#define FIXED_H
+#pragma once
 
+#ifndef __ASSEMBLER__
 #include <stdint.h>
-
 // Fixed point types
 typedef int32_t fix32_t;
 typedef int16_t fix16_t;
@@ -10,6 +9,7 @@ typedef int8_t fix8_t;
 typedef uint32_t ufix32_t;
 typedef uint16_t ufix16_t;
 typedef uint8_t ufix8_t;
+#endif
 
 #ifndef XB_FIXED_BITS
 #define XB_FIXED_BITS 4
@@ -25,5 +25,3 @@ typedef uint8_t ufix8_t;
 // Fixed point multiplication and division
 #define FIXMUL(x, y) (((x) * (y)) >> XB_FIXED_BITS)
 #define FIXDIV(x, y) (((x) << XB_FIXED_BITS) / (y))
-
-#endif // FIXED_H

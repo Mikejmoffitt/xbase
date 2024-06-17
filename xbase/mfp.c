@@ -38,12 +38,12 @@ uint8_t xb_mfp_read_gpdr(void)
 	return s_mfp->gpdr;
 }
 
-void *xb_mfp_set_interrupt(uint8_t vector, void (*interrupt_handler)(void))
+void *xb_mfp_set_interrupt(uint16_t vector, void (*interrupt_handler)(void))
 {
 	return _iocs_b_intvcs(vector, interrupt_handler);
 }
 
-void xb_mfp_set_interrupt_enable(uint8_t vector, bool enabled)
+void xb_mfp_set_interrupt_enable(uint16_t vector, bool enabled)
 {
 	if (vector >= XB_MFP_INT_TIMER_B && vector <= XB_MFP_INT_HSYNC)
 	{

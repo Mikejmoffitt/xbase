@@ -1,0 +1,93 @@
+#include	"xbase/xbase.h"
+
+	.section	.bss
+
+spr_count:	ds.w	1
+spr_count_prev:	ds.w	1
+spr_next:	ds.l	1
+spr_table:	ds.b	XBSprite.len*XB_PCG_SPR_COUNT
+
+	.section	.text
+
+	.global	xb_pcg_clear_sprites
+	.global	xb_pcg_add_sprite
+	.global	xb_pcg_finish_sprites
+	.global xb_pcg_transfer_pcg_data
+
+; void xb_pcg_clear_sprites(void);
+xb_pcg_clear_sprites:
+	moveq	#0, d0
+	moveq	#(XB_PCG_SPR_COUNT/8)-1, d1
+	lea	spr_table+XBSprite.prio, a0
+0:
+	.rept	8
+	move.w	d0, (a0)+
+	addq	#6, a0
+	.endr
+	dbf	d1, 0b
+	move.w	#XB_PCG_SPR_COUNT, spr_count
+	clr.w	spr_count_prev
+	rts
+
+; void xb_pcg_add_sprite(const XBSprite *spr);
+xb_pcg_add_sprite:
+	move.w	spr_count, d0
+	bmi.s	0f  ; >= 128 is minus; convenient
+	movea.l	4(sp), a0
+	movea.l	spr_next, a1
+	move.l	(a0)+, (a1)+
+	move.l	(a0)+, (a1)+
+	move.l	a1, spr_next
+	add.w	#1, d0
+	move.w	d0, spr_count
+0:
+	rts
+
+; void xb_pcg_finish_sprites(void);
+xb_pcg_finish_sprites:
+	moveq	#0, d0
+	move.w	spr_count_prev, d1
+	sub.w	spr_next, d1
+	ble.s	copy_to_pcg
+	; clear out unused sprites
+	movea.l	spr_next, a0
+	subq.w	#1, d1
+unused_clear_loop:
+	move.l	d0, (a0)+
+	addq	#6, a0
+	dbf	d1, unused_clear_loop
+
+copy_to_pcg:
+	lea	spr_table, a0
+	lea	XB_PCG_SPR_TABLE, a1
+	move.w	#(XB_PCG_SPR_COUNT/8)-1, d1
+pcg_copy_loop:
+	.rept	8
+	move.l	(a0)+, (a1)+
+	move.l	(a0)+, (a1)+
+	.endr
+	dbf	d1, pcg_copy_loop
+
+	move.w	spr_count, spr_count_prev
+	clr.w	spr_count
+	move.l	#spr_table, spr_next
+	rts
+
+
+; void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
+;                               uint16_t num_tiles);
+xb_pcg_transfer_pcg_data:
+	move.w	12+2(sp), d1  ; tile count
+	subq.w	#1, d1
+	blt.s	0f
+	movea.l	4(sp), a0     ; source tile data
+	move.w	8+2(sp), d0   ; destination tile number
+	lea	XB_PCG_TILE_DATA, a1
+	lsl.w	#5, d0  ; 32 bytes per tile
+copy_loop:
+	.rept	32/4
+	move.l	(a0)+, (a1)+
+	.endr
+	dbf	d1, copy_loop
+0:
+	rts

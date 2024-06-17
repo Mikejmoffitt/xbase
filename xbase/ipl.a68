@@ -1,0 +1,14 @@
+	#include	"xbase/xbase.h"
+
+	.section	.text
+
+	.global		xb_set_ipl
+; uint8_t xb_set_ipl(uint8_t ipl)
+xb_set_ipl:
+	move.w	sr, d0
+	move.w	d0, d1
+	andi.w	#$0007, d0   ; old value returned
+	andi.w	#$FFF8, d1   ; mask out IPL
+	or.w	4+2(sp), d1  ; and bring in new value
+	move.w	d1, sr
+	rts
