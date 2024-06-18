@@ -1,0 +1,107 @@
+#include	"xbase/xbase.h"
+
+	.section	.bss
+; Bitfield indicating that a palette line needs to be copied
+dirty_bitfield:		ds.l 1
+; Palette buffer
+g_xb_pal_buffer:	ds.w $200
+
+	.section	.text
+
+	.global		xb_pal_init
+	.global		xb_pal_set
+	.global		xb_pal_fill
+	.global		xb_pal_mark
+	.global		xb_pal_commit
+
+; void xb_pal_init(void);
+xb_pal_init:
+	moveq	#-1, d0
+	move.l	d0, dirty_bitfield
+	moveq	#0, d0
+	moveq	#($200/(4*8))-1, d1
+	lea	g_xb_pal_buffer, a0
+0:
+	.rept	8
+	move.l	d0, (a0)+
+	.endr
+	dbf	d1, 0b
+	rts
+
+; void xb_pal_set(uint16_t row, const void *src);
+xb_pal_set:
+	move.w	4+2(sp), d0  ; row
+	bsr.b	pal_dest_setup_sub
+	; source data pointer
+	move.l	8(sp), a0
+	; bulk data copy with movem
+	move.l	d3, -(sp)
+	movem.l	(a0)+, d0-d3  ; 4*4, half the palette
+	movem.l	d0-d3, (a1)
+	movem.l	(a0)+, d0-d3  ; second half
+	movem.l	d0-d3, $10(a1)
+	move.l	(sp)+, d3
+	rts
+
+; d0 = row
+; sets a1 to palette buffer destination
+; clobbers d1
+pal_dest_setup_sub:
+	; mark row as dirty
+	move.l	dirty_bitfield, d1
+	bset.l	d0, d1
+	move.l	d1, dirty_bitfield
+	; set up destination palette line
+	lsl.w	#5, d0
+	lea	(g_xb_pal_buffer), a1
+	adda.w	d0, a1
+	rts
+
+; void xb_pal_fill(uint16_t row, uint16_t value);
+xb_pal_fill:
+	move.w	4+2(sp), d0  ; offs
+	bsr.b	pal_dest_setup_sub
+	; source data constant
+	move.l	8+2(sp), d0
+	; get it in both top and bottom words
+	move.w	d0, d1
+	swap	d0
+	move.w	d1, d0
+	.rept	8
+	move.l	d0, (a1)+
+	.endr
+	rts
+
+; void xb_pal_mark(uint32_t row_bitfield);
+xb_pal_mark:
+	move.l	dirty_bitfield, d0
+	or.l	4(sp), d0
+	move.l	d0, dirty_bitfield
+	rts
+
+; void xb_pal_commit(void);
+xb_pal_commit:
+	movem.l	d3-d5/a3-a5, -(sp)
+	; d4 tracks the dirty bitfield.
+	; d5 holds the constant offset $20 for palette lines.
+	; a4 tracks the palette buffer source.
+	; a5 tracks the palette destination.
+	; d0-d3/a0-a3 are used for movem and thus get constantly trashed.
+	move.l	dirty_bitfield, d4
+	move.w	#$20, d5
+	lea	g_xb_pal_buffer, a4
+	lea	XB_VIDCON_GP_PAL_BASE, a5
+0:
+	bclr	#0, d4
+	beq.s	commit_nocopy
+	movem.l	(a4), d0-d3/a0-a3
+	movem.l	d0-d3/a0-a3, (a5)
+commit_nocopy:
+	lea	(d5, a4), a4
+	lea	(d5, a5), a5
+	ror.l	#1, d4  ; ror instead of shift to not worry about sign extension
+	bne.s	0b
+
+commit_done:
+	movem.l	(sp)+, d3-d5/a3-a5
+	rts

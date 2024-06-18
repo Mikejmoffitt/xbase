@@ -9,7 +9,8 @@
 #include <stdint.h>
 
 // Registers a simple interrupt handler for the vertical blank interval.
-void xb_vbl_wait_init(void);
+// Returns a pointer to the previous routine so it may be saved.
+void *xb_vbl_wait_init(void);
 
 // Blocks until vertical blank has been hit.
 void xb_vbl_wait(void);

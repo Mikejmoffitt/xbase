@@ -9,6 +9,7 @@
 #include "xbase/keys.h"
 #include "xbase/mfp.h"
 #include "xbase/opm.h"
+#include "xbase/pal.h"
 #include "xbase/pcg.h"
 #include "xbase/vidcon.h"
 

@@ -1,18 +1,14 @@
-/*
-
-X68000 Video Controller Helper Functions (vidcon)
-c. Michael Moffitt 2017-2022
-
-Provides some helper functions for configuring the video controller. The
-configuration is stored in three words of shadow copies of the registers,
-which are initially set with xb_vidcon_init_default().
-
-Afterwards, individual bits may be set or cleared with the clearly named
-helper functions. These functions modify the shadow copies. To write the shadow
-copies to the actual hardware registers, call xb_vidcon_commit_regs(). Ideally,
-the register commit occurs during video blank.
-
-*/
+// XBase Video Controller Helper Functions (vidcon)
+// (c) Michael Moffitt 2017-2024
+//
+// Provides some helper functions for configuring the video controller. The
+// configuration is stored in three words of shadow copies of the registers,
+// which are initially set with xb_vidcon_init_default().
+//
+// Afterwards, individual bits may be set or cleared with the clearly named
+// helper functions. These functions modify the shadow copies. To write the shadow
+// copies to the actual hardware registers, call xb_vidcon_commit_regs(). Ideally,
+// the register commit occurs during video blank.
 #pragma once 
 
 #ifndef __ASSEMBLER__
