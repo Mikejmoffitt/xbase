@@ -73,7 +73,7 @@ $(OBJDIR)/%.o: %.c $(XSP2LIBDIR) $(SOURCES_H)
 $(OBJDIR)/%.o: %.a68 $(XSP2LIBDIR) $(SOURCES_H)
 	@mkdir -p $(OBJDIR)/$(<D)
 	@bash -c 'printf "\t\e[95m[ ASM ]\e[0m $<\n"'
-	awk '{gsub(/;/,";#"); printf("%s", $$0 RT)}' RS='"[^"]*"' $< | awk '{gsub(/\$$/,"0x"); printf("%s", $$0 RT)}' RS='"[^"]*"' | $(AS) $(ASFLAGS) -o $@ -c -
+	gawk '{gsub(/;/,";#"); printf("%s", $$0 RT)}' RS='"[^"]*"' $< | gawk '{gsub(/\$$/,"0x"); printf("%s", $$0 RT)}' RS='"[^"]*"' | $(AS) $(ASFLAGS) -o $@ -c -
 
 clean:
 	$(RM) $(OBJECTS_C) $(OBJECTS_ASM)
