@@ -67,6 +67,8 @@ The default mode is XB_JOY_MODE_STANDARD.
 #include <stdint.h>
 #endif
 
+#include "xbase/macro.h"
+
 #define XB_JOY_COUNT 2
 
 // Bit numbers for the joy data.
@@ -87,18 +89,18 @@ The default mode is XB_JOY_MODE_STANDARD.
 #define XB_JOY_Z     12
 
 // Masks for use with bitwise operations (andi is faster than btst)
-#define XB_JOY_MASK_UP     BITVAL(XB_JOY_UP)
-#define XB_JOY_MASK_DOWN   BITVAL(XB_JOY_DOWN)
-#define XB_JOY_MASK_LEFT   BITVAL(XB_JOY_LEFT)
-#define XB_JOY_MASK_RIGHT  BITVAL(XB_JOY_RIGHT)
-#define XB_JOY_MASK_A      BITVAL(XB_JOY_A)
-#define XB_JOY_MASK_B      BITVAL(XB_JOY_B)
-#define XB_JOY_MASK_START  BITVAL(XB_JOY_START)
-#define XB_JOY_MASK_SELECT BITVAL(XB_JOY_SELECT)
-#define XB_JOY_MASK_C      BITVAL(XB_JOY_C)
-#define XB_JOY_MASK_X      BITVAL(XB_JOY_X)
-#define XB_JOY_MASK_Y      BITVAL(XB_JOY_Y)
-#define XB_JOY_MASK_Z      BITVAL(XB_JOY_Z)
+#define XB_JOY_MASK_UP     XB_BITVAL(XB_JOY_UP)
+#define XB_JOY_MASK_DOWN   XB_BITVAL(XB_JOY_DOWN)
+#define XB_JOY_MASK_LEFT   XB_BITVAL(XB_JOY_LEFT)
+#define XB_JOY_MASK_RIGHT  XB_BITVAL(XB_JOY_RIGHT)
+#define XB_JOY_MASK_A      XB_BITVAL(XB_JOY_A)
+#define XB_JOY_MASK_B      XB_BITVAL(XB_JOY_B)
+#define XB_JOY_MASK_START  XB_BITVAL(XB_JOY_START)
+#define XB_JOY_MASK_SELECT XB_BITVAL(XB_JOY_SELECT)
+#define XB_JOY_MASK_C      XB_BITVAL(XB_JOY_C)
+#define XB_JOY_MASK_X      XB_BITVAL(XB_JOY_X)
+#define XB_JOY_MASK_Y      XB_BITVAL(XB_JOY_Y)
+#define XB_JOY_MASK_Z      XB_BITVAL(XB_JOY_Z)
 
 #define XB_JOY_MODE_STANDARD 0x00
 #define XB_JOY_MODE_6BUTTON  0x01

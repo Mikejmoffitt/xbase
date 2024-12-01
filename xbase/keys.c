@@ -215,13 +215,13 @@ void xb_keys_init(const XBKey *sense_list)
 		{
 			s_keys.sense_list[i] = i;
 		}
-		s_keys.sense_list_size = ARRAYSIZE(s_keys.sense_list);
+		s_keys.sense_list_size = XB_ARRAYSIZE(s_keys.sense_list);
 	}
 	else
 	{
 		uint16_t i = 0;
 		while (sense_list[i] != XB_KEY_INVALID &&
-		       i < ARRAYSIZE(s_keys.sense_list))
+		       i < XB_ARRAYSIZE(s_keys.sense_list))
 		{
 			s_keys.sense_list[i] = sense_list[i];
 			i++;
@@ -240,7 +240,7 @@ void xb_keys_set_repeat(int16_t delay, int16_t rate)
 
 static inline void event_push(XBKey key, bool repeat, bool key_up)
 {
-	const uint16_t next_w = (s_keys.key_w + 1) % ARRAYSIZE(s_keys.key_events);
+	const uint16_t next_w = (s_keys.key_w + 1) % XB_ARRAYSIZE(s_keys.key_events);
 	if (next_w == s_keys.key_r) return;  // Queue full.
 	// Record new event.
 	XBKeyEvent *ev = &s_keys.key_events[s_keys.key_w];
@@ -263,7 +263,7 @@ void xb_keys_poll(void)
 {
 	// Update key matrix bitfields
 	memcpy(s_keys.key_bits_prev, s_keys.key_bits, sizeof(s_keys.key_bits));
-	for (uint16_t i = 0; i < ARRAYSIZE(s_keys.key_bits); i++)
+	for (uint16_t i = 0; i < XB_ARRAYSIZE(s_keys.key_bits); i++)
 	{
 		s_keys.key_bits[i] = _iocs_bitsns(i);
 	}
@@ -311,7 +311,7 @@ void xb_keys_poll(void)
 bool xb_keys_event_pop(XBKeyEvent *out)
 {
 	if (s_keys.key_r == s_keys.key_w) return false;
-	const uint16_t next_r = (s_keys.key_r + 1) % ARRAYSIZE(s_keys.key_events);
+	const uint16_t next_r = (s_keys.key_r + 1) % XB_ARRAYSIZE(s_keys.key_events);
 
 	*out = s_keys.key_events[s_keys.key_r];
 
