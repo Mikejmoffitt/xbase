@@ -49,8 +49,9 @@ LDFLAGS += -Wl,-Map=$(APPNAME).map
 # Build Rules
 #
 
-.PHONY: all clean xb_copy_resources $(OUTDIR)/$(APPNAME).X $(XSP2LIBDIR)
+.PHONY: all clean xb_copy_resources $(OUTDIR)/$(APPNAME).X $(XSP2LIBDIR) $(EXTERNAL_DEPS)
 
+EXTERNAL_DEPS ?=
 EXTERNAL_ARTIFACTS ?=
 
 all: $(OUTDIR)/$(APPNAME).X
@@ -60,7 +61,7 @@ xb_copy_resources:
 	cp -r $(RESDIR)/* $(OUTDIR)/
 	find $(OUTDIR)/ -type f -execdir rename -f "y/a-z/A-Z/" {} +
 
-$(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) xb_copy_resources
+$(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) $(EXTERNAL_DEPS) xb_copy_resources
 	@bash -c 'printf "\t\e[94m[ LNK ]\e[0m $(OBJECTS_ASM) $(OBJECTS_C)\n"'
 	$(CC) -o $(APPNAME).bin $(LDFLAGS) $(CFLAGS) $(OBJECTS_C) $(OBJECTS_ASM) $(XSP2LIBDIR)/xsp2lib.a
 	mkdir -p $(OUTDIR)
@@ -68,12 +69,12 @@ $(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) xb_copy_resources
 	rm $(APPNAME).bin
 	@bash -c 'printf "\e[92m\n\tBuild Complete. \e[0m\n\n"'
 
-$(OBJDIR)/%.o: %.c $(XSP2LIBDIR) $(SOURCES_H)
+$(OBJDIR)/%.o: %.c $(XSP2LIBDIR) $(SOURCES_H) $(EXTERNAL_DEPS)
 	mkdir -p $(OBJDIR)/$(<D)
 	bash -c 'printf "\t\e[96m[  C  ]\e[0m $<\n"'
 	$(CC) -c $(CFLAGS) $< -o $@
 
-$(OBJDIR)/%.o: %.a68 $(XSP2LIBDIR) $(SOURCES_H)
+$(OBJDIR)/%.o: %.a68 $(XSP2LIBDIR) $(SOURCES_H) $(EXTERNAL_DEPS)
 	mkdir -p $(OBJDIR)/$(<D)
 	bash -c 'printf "\t\e[95m[ ASM ]\e[0m $<\n"'
 	gawk '{gsub(/;/,";#"); printf("%s", $$0 RT)}' RS='"[^"]*"' $< | gawk '{gsub(/\$$/,"0x"); printf("%s", $$0 RT)}' RS='"[^"]*"' | $(AS) $(ASFLAGS) -o $@ -c -
