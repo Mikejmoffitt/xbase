@@ -51,6 +51,8 @@ LDFLAGS += -Wl,-Map=$(APPNAME).map
 
 .PHONY: all clean xb_copy_resources $(OUTDIR)/$(APPNAME).X $(XSP2LIBDIR)
 
+EXTERNAL_ARTIFACTS ?=
+
 all: $(OUTDIR)/$(APPNAME).X
 
 xb_copy_resources:
@@ -81,6 +83,7 @@ clean:
 	rm -rf $(OBJDIR)
 	rm -rf $(OUTDIR)
 	rm -rf $(XSP2LIBDIR)
+	echo $(EXTERNAL_ARTIFACTS) | xargs --no-run-if-empty rm -rf $(EXTERNAL_ARTIFACTS)
 
 #
 # Building XSP for GCC
