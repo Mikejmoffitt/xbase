@@ -172,6 +172,7 @@ typedef struct XBCrtcTimingCfg
 
 // Indexed as x, y
 XBCrtcScrollCfg.text:		ds.w 2
+XBCrtcScrollCfg.gp:
 XBCrtcScrollCfg.gp0:		ds.w 2
 XBCrtcScrollCfg.gp1:		ds.w 2
 XBCrtcScrollCfg.gp2:		ds.w 2
@@ -184,10 +185,17 @@ typedef struct XBCrtcScrollCfg
 {
 	// { x, y }
 	uint16_t text[2];   // TVRAM
-	uint16_t gp0[2];  // GVRAM0
-	uint16_t gp1[2];  // GVRAM1
-	uint16_t gp2[2];  // GVRAM2
-	uint16_t gp3[2];  // GVRAM3
+	union
+	{
+		struct
+		{
+			uint16_t gp0[2];  // GVRAM0
+			uint16_t gp1[2];  // GVRAM1
+			uint16_t gp2[2];  // GVRAM2
+			uint16_t gp3[2];  // GVRAM3
+		};
+		uint16_t gp[8];  // All GVRAM scroll
+	};
 } XBCrtcScrollCfg;
 
 extern XBCrtcScrollCfg g_xb_crtc_scroll;
