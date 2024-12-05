@@ -90,6 +90,7 @@ clean:
 	rm -rf $(OBJDIR)
 	rm -rf $(OUTDIR)
 	rm -rf $(XSP2LIBDIR)
+	rm -rf $(TMP_XBDATA)
 	echo $(EXTERNAL_ARTIFACTS) | xargs --no-run-if-empty rm -rf $(EXTERNAL_ARTIFACTS)
 
 #
