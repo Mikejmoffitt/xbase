@@ -59,7 +59,8 @@ all: $(OUTDIR)/$(APPNAME).X
 xb_copy_resources:
 	mkdir -p $(OUTDIR)
 	cp -r $(RESDIR)/* $(OUTDIR)/
-	find $(OUTDIR)/ -type f -execdir rename -f "y/a-z/A-Z/" {} +
+	find $(OUTDIR)/*/ -type f -execdir rename -f "y/a-z/A-Z/" {} +
+	find $(OUTDIR)/*/ -type d -execdir rename -f "y/a-z/A-Z/" {} +
 
 $(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) $(EXTERNAL_DEPS) xb_copy_resources
 	@bash -c 'printf "\t\e[94m[ LNK ]\e[0m $(OBJECTS_ASM) $(OBJECTS_C)\n"'
