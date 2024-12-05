@@ -2,3 +2,4 @@ out/
 gen/
 *.swp
 x68k_xsp
+x68k_xsp_mainline
