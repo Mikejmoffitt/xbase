@@ -53,11 +53,11 @@ LDFLAGS += -Wl,-Map=$(APPNAME).map
 
 EXTERNAL_DEPS ?=
 EXTERNAL_ARTIFACTS ?=
+TMP_XBDATA := /tmp/xbdata
 
 all: $(OUTDIR)/$(APPNAME).X
 
-TMP_XBDATA := /tmp/xbdata
-
+# Create copy of resources directory with filtered filenames
 xb_copy_resources: $(EXTERNAL_DEPS)
 	rm -rf $(TMP_XBDATA)/
 	mkdir -p $(TMP_XBDATA)/
@@ -71,7 +71,7 @@ $(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) $(EXTERNAL_DEPS) xb_copy_res
 	mkdir -p $(OUTDIR)
 	$(OBJCOPY) -v -O xfile $(APPNAME).bin $(OUTDIR)/$(APPNAME).X > /dev/null
 	rm $(APPNAME).bin
-	cp /tmp/xbdata
+	cp -r $(TMP_XBDATA)/* $(OUTDIR)/
 	@bash -c 'printf "\e[92m\n\tBuild Complete. \e[0m\n\n"'
 
 $(OBJDIR)/%.o: %.c $(XSP2LIBDIR) $(SOURCES_H) $(EXTERNAL_DEPS)
