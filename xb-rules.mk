@@ -56,10 +56,14 @@ EXTERNAL_ARTIFACTS ?=
 
 all: $(OUTDIR)/$(APPNAME).X
 
-xb_copy_resources:
-	mkdir -p $(OUTDIR)
-	cp -r $(RESDIR)/* $(OUTDIR)/
-	find $(OUTDIR)/ -type f -execdir rename -f "y/a-z/A-Z/" {} +
+TMP_XBDATA := /tmp/xbdata
+
+xb_copy_resources: $(EXTERNAL_DEPS)
+	rm -rf $(TMP_XBDATA)/
+	mkdir -p $(TMP_XBDATA)/
+	cp -r $(RESDIR)/* $(TMP_XBDATA)/
+	find $(TMP_XBDATA)/*/ -type f -execdir rename -f "y/a-z/A-Z/" {} +
+	find $(TMP_XBDATA)/*/ -type d -execdir rename -f "y/a-z/A-Z/" {} +
 
 $(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) $(EXTERNAL_DEPS) xb_copy_resources
 	@bash -c 'printf "\t\e[94m[ LNK ]\e[0m $(OBJECTS_ASM) $(OBJECTS_C)\n"'
@@ -67,6 +71,7 @@ $(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) $(EXTERNAL_DEPS) xb_copy_res
 	mkdir -p $(OUTDIR)
 	$(OBJCOPY) -v -O xfile $(APPNAME).bin $(OUTDIR)/$(APPNAME).X > /dev/null
 	rm $(APPNAME).bin
+	cp /tmp/xbdata
 	@bash -c 'printf "\e[92m\n\tBuild Complete. \e[0m\n\n"'
 
 $(OBJDIR)/%.o: %.c $(XSP2LIBDIR) $(SOURCES_H) $(EXTERNAL_DEPS)
