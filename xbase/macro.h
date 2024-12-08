@@ -1,8 +1,8 @@
 #pragma once
 
-#define XB_BITVAL(x) (1 << x)
+#define XB_BITVAL(x) (1 << (x))
 
-#define XB_NUM_IS_POW2(x) ((x & (x - 1)) == 0)
+#define XB_NUM_IS_POW2(x) (((x) & ((x) - 1)) == 0)
 
 #ifndef XB_ARRAYSIZE
 #define XB_ARRAYSIZE(x) (sizeof(x) / sizeof(x[0]))

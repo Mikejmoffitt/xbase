@@ -1,8 +1,8 @@
 #pragma once
+// Fixed point types
 
 #ifndef __ASSEMBLER__
 #include <stdint.h>
-// Fixed point types
 typedef int32_t fix32_t;
 typedef int16_t fix16_t;
 typedef int8_t fix8_t;
