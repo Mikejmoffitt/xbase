@@ -5,8 +5,7 @@ https://github.com/yosshin4004/x68k_xsp
 Translation and formatting by Mike Moffitt 2022
 */
 
-#ifndef XSP2LIB_H
-#define XSP2LIB_H
+#pragma once
 
 #define XSP_HF 0x4000
 #define XSP_VF 0x8000
@@ -15,6 +14,7 @@ Translation and formatting by Mike Moffitt 2022
 
 // xsp_set_st, xobj_set_st の引数構造体
 // Argument struct for xsp_set_st and xobj_set_st.
+#ifndef __ASSEMBLER__
 typedef struct
 {
 	short x;              // X 座標 Position
@@ -36,9 +36,18 @@ typedef struct
                                             0xC：Both
 	*/
 } XSP_SET_ARG;
+#else
+	.struct	0
+XSP_SET_ARG.x:			ds.w	1
+XSP_SET_ARG.y:			ds.w	1
+XSP_SET_ARG.pt:			ds.w	1
+XSP_SET_ARG.info:		ds.w	1
+XSP_SET_ARG.len:
+#endif
 
 // 複合スプライトのフレームデータ構造体
 // Composite sprite frame data struct.
+#ifndef __ASSEMBLER__
 typedef struct
 {
 	short vx;  // 相対座標データ Relative X coordinate data
@@ -46,18 +55,35 @@ typedef struct
 	short pt;  // スプライトパターン Sprite pattern no.
 	short rv;  // 反転コード Reflection code
 } XOBJ_FRM_DAT;
+#else
+	.struct	0
+XOBJ_FRM_DAT.vx:		ds.w	1
+XOBJ_FRM_DAT.vy:		ds.w	1
+XOBJ_FRM_DAT.pt:		ds.w	1
+XOBJ_FRM_DAT.rv:		ds.w	1
+XOBJ_FRM_DAT.len:
+#endif
 
 // 複合スプライトのリファレンスデータ構造体
 // Composite sprite reference data struct.
+#ifndef __ASSEMBLER__
 typedef struct
 {
 	short num;    // 合成スプライト数 Composite sprite FRM data count
 	void *ptr;    // 開始位置のポインタ Pointer to start of FRM data
 	short unused; //（未使用）(Unused)
 } XOBJ_REF_DAT;
+#else
+	.struct	0
+XOBJ_REF_DAT.num:		ds.w	1
+XOBJ_REF_DAT.ptr:		ds.l	1
+XOBJ_REF_DAT.unused:	ds.w	1
+XOBJ_REF_DAT.len:
+#endif
 
 // ラスター割り込み処理のタイムチャート
 // Raster interrupt processing time chart.
+#ifndef __ASSEMBLER__
 typedef struct
 {
 	short ras_no;        // 割り込みラスタナンバー Raster interrupt number
@@ -65,7 +91,14 @@ typedef struct
 	void (*proc)(void);  // 割り込み処理関数のポインタ
 	                     // Raster interrupt routine pointer
 } XSP_TIME_CHART;
+#else
+	.struct	0
+XSP_TIME_CHART.ras_no:	ds.w	1
+XSP_TIME_CHART.proc:	ds.l	1
+XSP_TIME_CHART.len:
+#endif
 
+#ifndef __ASSEMBLER__
 // Initializes XSP. Previously set V/H int handlers will be cancelled.
 void xsp_on();
 
@@ -182,4 +215,32 @@ void xsp_raster_ofs_for15khz_set(short ofs);
 // Returns the sprite transfer raster line for 15KHz.
 short xsp_raster_ofs_for15khz_get(void);
 
-#endif
+#else
+
+	.extern	xsp_on
+	.extern	xsp_off
+	.extern	xsp_pcgdat_set
+	.extern	xsp_pcgmask_on
+	.extern	xsp_pcgmask_off
+	.extern	xsp_mode
+	.extern	xsp_objdat_set
+	.extern	xsp_vsync
+	.extern	xsp_set
+	.extern	xobj_set
+	.extern	xsp_set_st
+	.extern	xobj_set_st
+	.extern	xsp_out
+	.extern	xsp_vertical
+	.extern	xsp_vsyncint_on
+	.extern	xsp_vsyncint_off
+	.extern	xsp_hsyncint_on
+	.extern	xsp_hsyncint_off
+	.extern	xsp_auto_adjust_divy
+	.extern	xsp_min_divh_set
+	.extern	xsp_divy_get
+	.extern	xsp_raster_ofs_for31khz_set
+	.extern	xsp_raster_ofs_for31khz_get
+	.extern	xsp_raster_ofs_for15khz_set
+	.extern	xsp_raster_ofs_for15khz_get
+
+#endif  // __ASSEMBLER__
