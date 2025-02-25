@@ -51,36 +51,32 @@ LDFLAGS += -Wl,-Map=$(APPNAME).map
 
 .PHONY: all clean xb_copy_resources $(OUTDIR)/$(APPNAME).X $(XSP2LIBDIR) $(EXTERNAL_DEPS)
 
+# Generic variable for additional files that are a build prerequisite.
 EXTERNAL_DEPS ?=
 EXTERNAL_ARTIFACTS ?=
-TMP_XBDATA := /tmp/xbdata
 
 all: $(OUTDIR)/$(APPNAME).X
 
-# Create copy of resources directory with filtered filenames
-xb_copy_resources: $(EXTERNAL_DEPS)
-	rm -rf $(TMP_XBDATA)/
-	mkdir -p $(TMP_XBDATA)/
-	cp -r $(RESDIR)/* $(TMP_XBDATA)/
-	-find $(TMP_XBDATA)/*/ -type f,d -execdir rename -f "y/a-z/A-Z/" {} +
+xb_copy_resources:
+	@mkdir -p $(OUTDIR)
+	@cp -r $(RESDIR)/* $(OUTDIR)/
 
-$(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) $(EXTERNAL_DEPS) xb_copy_resources
+$(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) xb_copy_resources
 	@bash -c 'printf "\t\e[94m[ LNK ]\e[0m $(OBJECTS_ASM) $(OBJECTS_C)\n"'
 	$(CC) -o $(APPNAME).bin $(LDFLAGS) $(CFLAGS) $(OBJECTS_C) $(OBJECTS_ASM) $(XSP2LIBDIR)/xsp2lib.a
-	mkdir -p $(OUTDIR)
+	@mkdir -p $(OUTDIR)
 	$(OBJCOPY) -v -O xfile $(APPNAME).bin $(OUTDIR)/$(APPNAME).X > /dev/null
-	rm $(APPNAME).bin
-	cp -r $(TMP_XBDATA)/* $(OUTDIR)/
+	@rm $(APPNAME).bin
 	@bash -c 'printf "\e[92m\n\tBuild Complete. \e[0m\n\n"'
 
 $(OBJDIR)/%.o: %.c $(XSP2LIBDIR) $(SOURCES_H) $(EXTERNAL_DEPS)
-	mkdir -p $(OBJDIR)/$(<D)
-	bash -c 'printf "\t\e[96m[  C  ]\e[0m $<\n"'
+	@mkdir -p $(OBJDIR)/$(<D)
+	@bash -c 'printf "\t\e[96m[  C  ]\e[0m $<\n"'
 	$(CC) -c $(CFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: %.a68 $(XSP2LIBDIR) $(SOURCES_H) $(EXTERNAL_DEPS)
-	mkdir -p $(OBJDIR)/$(<D)
-	bash -c 'printf "\t\e[95m[ ASM ]\e[0m $<\n"'
+	@mkdir -p $(OBJDIR)/$(<D)
+	@bash -c 'printf "\t\e[95m[ ASM ]\e[0m $<\n"'
 	gawk '{gsub(/;/,";#"); printf("%s", $$0 RT)}' RS='"[^"]*"' $< | gawk '{gsub(/\$$/,"0x"); printf("%s", $$0 RT)}' RS='"[^"]*"' | $(AS) $(ASFLAGS) -o $@ -c -
 
 clean:
@@ -89,7 +85,6 @@ clean:
 	rm -rf $(OBJDIR)
 	rm -rf $(OUTDIR)
 	rm -rf $(XSP2LIBDIR)
-	rm -rf $(TMP_XBDATA)
 	echo $(EXTERNAL_ARTIFACTS) | xargs --no-run-if-empty rm -rf $(EXTERNAL_ARTIFACTS)
 
 #
