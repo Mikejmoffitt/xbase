@@ -2,8 +2,7 @@
 // XSP data management.
 //
 
-#ifndef XBASE_UTIL_XSPMAN_H
-#define XBASE_UTIL_XSPMAN_H
+#pragma once
 
 #include <stdbool.h>
 
@@ -71,5 +70,3 @@ const void *xspman_get_objdat_ptr(void);
 // may be called again. Call this after xsp_off().
 void xspman_shutdown(void);
 
-
-#endif  // XBASE_UTIL_XSPMAN_H
