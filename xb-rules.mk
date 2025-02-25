@@ -49,23 +49,23 @@ LDFLAGS += -Wl,-Map=$(APPNAME).map
 # Build Rules
 #
 
-.PHONY: all clean xb_copy_resources $(OUTDIR)/$(APPNAME).X $(XSP2LIBDIR) $(EXTERNAL_DEPS)
+.PHONY: all clean xb_copy_resources $(OUTDIR)/$(APPNAME).x $(XSP2LIBDIR) $(EXTERNAL_DEPS)
 
 # Generic variable for additional files that are a build prerequisite.
 EXTERNAL_DEPS ?=
 EXTERNAL_ARTIFACTS ?=
 
-all: $(OUTDIR)/$(APPNAME).X
+all: $(OUTDIR)/$(APPNAME).x
 
 xb_copy_resources:
 	@mkdir -p $(OUTDIR)
 	@cp -r $(RESDIR)/* $(OUTDIR)/
 
-$(OUTDIR)/$(APPNAME).X: $(OBJECTS_C) $(OBJECTS_ASM) xb_copy_resources
+$(OUTDIR)/$(APPNAME).x: $(OBJECTS_C) $(OBJECTS_ASM) xb_copy_resources
 	@bash -c 'printf "\t\e[94m[ LNK ]\e[0m $(OBJECTS_ASM) $(OBJECTS_C)\n"'
 	$(CC) -o $(APPNAME).bin $(LDFLAGS) $(CFLAGS) $(OBJECTS_C) $(OBJECTS_ASM) $(XSP2LIBDIR)/xsp2lib.a
 	@mkdir -p $(OUTDIR)
-	$(OBJCOPY) -v -O xfile $(APPNAME).bin $(OUTDIR)/$(APPNAME).X > /dev/null
+	$(OBJCOPY) -v -O xfile $(APPNAME).bin $(OUTDIR)/$(APPNAME).x > /dev/null
 	@rm $(APPNAME).bin
 	@bash -c 'printf "\e[92m\n\tBuild Complete. \e[0m\n\n"'
 
@@ -101,12 +101,16 @@ $(XSP2LIBDIR): $(XBASEDIR)/tools/xsp-gcc-conv/
 # On the X68000 side, run SUSIE.X <Drive>: -ID<SCSI ID>
 # To find the SCSI ID, just run SUSIE.X without arguments.
 #
-upload: $(OUTDIR)/$(APPNAME).X
+upload: $(OUTDIR)/$(APPNAME).x
 	mkdir -p /tmp/mo_mnt
 	-sudo umount $(TARGET_DEV)
 	sudo mount $(TARGET_DEV) /tmp/mo_mnt
 	sudo rm -rf /tmp/mo_mnt/*
-	sudo cp -r $(OUTDIR)/* /tmp/mo_mnt/
+	mkdir -p uccopy
+	cp -r $(OUTDIR)/* uccopy/
+	find uccopy/* -type f,d -iname "*" -execdir rename "y/a-z/A-Z/" {} +
+	sudo cp -r uccopy/* /tmp/mo_mnt/
 	sync
+	rm -rf uccopy
 	sudo umount $(TARGET_DEV)
 	rmdir /tmp/mo_mnt
