@@ -238,9 +238,13 @@ static int get_file_bytes(const char *fname_base, const char *ext)
 short xspman_reg_bundle(const char *fname, unsigned short *pal)
 {
 	if (s_xspman.loaded) return -1;
-
+	printf("[xspman_reg_bundle] %s\n", fname);
 	FILE *f = fopen(fname, "rb");
-	if (!f) return -1;
+	if (!f)
+	{
+		printf("Error opening file.\n");
+		return -1;
+	}
 	XSBHeader header;
 	fread(&header, 1, sizeof(header), f);
 	fclose(f);
@@ -256,12 +260,13 @@ short xspman_reg_bundle(const char *fname, unsigned short *pal)
 	{
 		ret = s_xspman.ref_bytes / 8;  // XOBJ no.
 	}
-	else if (header.type == -1)  // sp
+	else if (header.type == 1)  // sp
 	{
 		ret = s_xspman.pcg_bytes / 128;  // PT no.
 	}
 	else
 	{
+		printf("Error: type %d\n", header.type);
 		return ret;
 	}
 	s_xspman.ref_bytes += (header.ref_count * 8);
@@ -368,7 +373,7 @@ bool xspman_load(void)
 	XSPManFileNode *current = s_xspman.file_list;
 	while (current != NULL)
 	{
-		printf("Read %s", current->fname_base);
+		printf("[xspman] %s:\n", current->fname_base);
 		if (current->filetype != XSPMAN_FILE_SP)
 		{
 			// Loading an XOBJ file requires multiple steps. The complication,
