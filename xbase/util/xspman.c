@@ -238,11 +238,11 @@ static int get_file_bytes(const char *fname_base, const char *ext)
 short xspman_reg_bundle(const char *fname, unsigned short *pal)
 {
 	if (s_xspman.loaded) return -1;
-	printf("[xspman_reg_bundle] %s\n", fname);
+	printf("[xspman] %s : ", fname);
 	FILE *f = fopen(fname, "rb");
 	if (!f)
 	{
-		printf("Error opening file.\n");
+		printf("Read Error\n");
 		return -1;
 	}
 	XSBHeader header;
@@ -285,7 +285,7 @@ short xspman_reg_xsp(const char *fname_base)
 	if (ref_bytes < 0) return -1;
 	if (ref_bytes % 8 != 0)
 	{
-		printf("xspman_reg_xsp: Unusual REF file size for %s\n", fname_base);
+		printf("[xspman] Unusual REF file size for %s\n", fname_base);
 		return -1;
 	}
 	const int ret = s_xspman.ref_bytes / 8;  // This gives us the XOBJ no.
@@ -295,7 +295,7 @@ short xspman_reg_xsp(const char *fname_base)
 	if (frm_bytes < 0) return -1;
 	if (frm_bytes % 8 != 0)
 	{
-		printf("xspman_reg_xsp: Unusual FRM file size for %s\n", fname_base);
+		printf("[xspman] Unusual FRM file size for %s\n", fname_base);
 		return -1;
 	}
 	s_xspman.frm_bytes += frm_bytes;
@@ -304,7 +304,7 @@ short xspman_reg_xsp(const char *fname_base)
 	if (pcg_bytes < 0) return -1;
 	if (pcg_bytes % 128 != 0)
 	{
-		printf("xspman_reg_xsp: Unusual PCG file size for %s\n", fname_base);
+		printf("[xspman] Unusual PCG file size for %s\n", fname_base);
 		return -1;
 	}
 	s_xspman.pcg_bytes += pcg_bytes;
@@ -322,7 +322,7 @@ short xspman_reg_sp(const char *fname_base)
 	if (pcg_bytes < 0) return -1;
 	if (pcg_bytes % 128 != 0)
 	{
-		printf("xspman_reg_sp: Unusual PCG file size for %s\n", fname_base);
+		printf("[xspman] Unusual PCG file size for %s\n", fname_base);
 		return -1;
 	}
 
@@ -338,7 +338,7 @@ bool xspman_load(void)
 {
 	if (s_xspman.loaded) return false;
 
-	printf("[xspman_load] Buffer summary:\n");
+	printf("[xspman] Buffer summary:\n");
 	printf("  FRM: %d bytes\n", s_xspman.frm_bytes);
 	printf("  REF: %d bytes\n", s_xspman.ref_bytes);
 	printf("  PCG: %d bytes\n", s_xspman.pcg_bytes);
@@ -390,21 +390,21 @@ bool xspman_load(void)
 
 			// First, load the REF data, and rebase it against frm_base, which is
 			// frmdat[frm_load_offs].
-			printf(" REF");
+			printf(",");
 			s_xspman.ref_load_offs += add_ref_data(current->fname_base,
 			                                       current->ref_bytes,
 			                                       current->filetype);
 			// Next, load the FRM data into frm_base, add to frm_load_offs the
 			// size of the loaded data, and add pcg_load_offs/128 to the pattern
 			// field of the FRM data.
-			printf(" FRM");
+			printf(".");
 			s_xspman.frm_load_offs += add_frm_data(current->fname_base,
 			                                       current->frm_bytes,
 			                                       current->filetype);
 		}
 		// Finally, load the PCG data, and increment pcg_load_offs by the number
 		// of bytes loaded.
-		printf(" PCG");
+		printf(".");
 		s_xspman.pcg_load_offs += add_pcg_data(current->fname_base,
 		                                       current->pcg_bytes,
 		                                       current->filetype);

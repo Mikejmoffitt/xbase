@@ -5,14 +5,12 @@
 #include <stdint.h>
 typedef int32_t fix32_t;
 typedef int16_t fix16_t;
-typedef int8_t fix8_t;
 typedef uint32_t ufix32_t;
 typedef uint16_t ufix16_t;
-typedef uint8_t ufix8_t;
 #endif
 
 #ifndef XB_FIXED_BITS
-#define XB_FIXED_BITS 4
+#define XB_FIXED_BITS 7
 #endif  // XB_FIXED_BITS
 
 // Precision configuration
