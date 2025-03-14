@@ -10,7 +10,7 @@ typedef uint16_t ufix16_t;
 #endif
 
 #ifndef XB_FIXED_BITS
-#define XB_FIXED_BITS 7
+#define XB_FIXED_BITS 4
 #endif  // XB_FIXED_BITS
 
 // Precision configuration
