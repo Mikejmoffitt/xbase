@@ -53,9 +53,9 @@ xb_pal_set:
 ; clobbers d1
 pal_dest_setup_sub:
 	; mark row as dirty
-	moveq	#0, d1
+	move.l	dirty_bitfield, d1
 	bset	d0, d1
-	or.l	d1, dirty_bitfield
+	move.l	d1, dirty_bitfield
 	; set up destination palette line
 	lsl.w	#5, d0
 	lea	(g_xb_pal_buffer), a1
