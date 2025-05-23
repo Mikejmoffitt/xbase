@@ -5,7 +5,7 @@
 
 	.section	.bss
 ; Bitfield indicating that a palette line needs to be copied
-dirty_bitfield:		ds.l 1
+s_dirty_bitfield:		ds.l 1
 ; Palette buffer
 g_xb_pal_buffer:	ds.w PAL_ENTRY_COUNT*PAL_LINES
 
@@ -30,7 +30,7 @@ init_loop:
 	dbf	d1, init_loop
 	; mark all palettes as in need of a transfer.
 	moveq	#-1, d0
-	move.l	d0, dirty_bitfield
+	move.l	d0, s_dirty_bitfield
 	rts
 
 ; void xb_pal_set(uint16_t row, const void *src);
@@ -53,9 +53,9 @@ xb_pal_set:
 ; clobbers d1
 pal_dest_setup_sub:
 	; mark row as dirty
-	move.l	dirty_bitfield, d1
+	move.l	s_dirty_bitfield, d1
 	bset	d0, d1
-	move.l	d1, dirty_bitfield
+	move.l	d1, s_dirty_bitfield
 	; set up destination palette line
 	lsl.w	#5, d0
 	lea	(g_xb_pal_buffer), a1
@@ -80,7 +80,7 @@ xb_pal_fill:
 ; void xb_pal_mark(uint32_t row_bitfield);
 xb_pal_mark:
 	move.l	4(sp), d0
-	or.l	d0, dirty_bitfield
+	or.l	d0, s_dirty_bitfield
 	rts
 
 ; void xb_pal_commit(void);
@@ -91,7 +91,7 @@ xb_pal_commit:
 	; a4 tracks the palette buffer source.
 	; a5 tracks the palette destination.
 	; d0-d3/a0-a3 are used for movem and thus get constantly trashed.
-	move.l	dirty_bitfield, d4
+	move.l	s_dirty_bitfield, d4
 	moveq	#PAL_ENTRY_COUNT*2, d5
 	lea	g_xb_pal_buffer, a4
 	lea	XB_VIDCON_GP_PAL_BASE, a5
@@ -110,6 +110,6 @@ commit_proceed:
 	bne.s	commit_loop
 
 commit_done:
-	clr.l	dirty_bitfield
+	clr.l	s_dirty_bitfield
 	movem.l	(sp)+, d3-d5/a3-a5
 	rts

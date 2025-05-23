@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "xbase/memmap.h"
+#include "xbase/macro.h"
 #endif
 
 #define XB_PCG_SPR_COUNT 128
@@ -90,20 +91,44 @@ typedef struct XBPcgCfg
 	.global	xb_pcg_set_bg0_enable
 	.global	xb_pcg_clear_sprites
 	.global	
+
+	.extern	g_xb_pcg_ctrl
 #else
+
+extern uint16_t g_xb_pcg_ctrl;
+
+/*
+Control:    0xEB0808
+---- --9- ---- ---- D/C          turn on PCG to allow PCG register access
+---- ---- --54 ---- BG1 TXsel    nametable mapping
+---- ---- ---- 3--- BG1 ON
+---- ---- ---- -21- BG0 TXsel    nametable mapping
+---- ---- ---- ---0 BG0 ON
+H-total:    0xEB080A
+---- ---- 7654 3210 H total
+H-disp:     0xEB080C
+---- ---- --54 3210 H disp
+V-disp:     0xEB080E
+---- ---- 7654 3210 V disp
+Mode:       0xEB0810
+---- ---- ---4 ---- L/H          15KHz(0), 31Khz(1)
+---- ---- ---- 32-- V-res
+---- ---- ---- --10 H-res        If nonzero, enables 16x16 tiles
+
+*/
 
 void xb_pcg_init(const XBPcgCfg *c);
 
 // Turn off the display for faster transfer
-void xb_pcg_set_disp_en(bool en);
+static inline void xb_pcg_set_disp_en(bool en);
 
 // Change the mappings for BG1 and BG0 nametables
-void xb_pcg_set_bg1_txsel(uint8_t t);
-void xb_pcg_set_bg0_txsel(uint8_t t);
+static inline void xb_pcg_set_bg1_txsel(uint8_t t);
+static inline void xb_pcg_set_bg0_txsel(uint8_t t);
 
 // Enable or disable BG layer display
-void xb_pcg_set_bg1_enable(bool en);
-void xb_pcg_set_bg0_enable(bool en);
+static inline void xb_pcg_set_bg1_enable(bool en);
+static inline void xb_pcg_set_bg0_enable(bool en);
 
 // Background plane scroll.
 static inline void xb_pcg_set_bg0_xscroll(uint16_t x);
@@ -115,9 +140,6 @@ static inline void xb_pcg_set_bg1_yscroll(uint16_t y);
 // but may be helpful for debugging or small changes.
 static inline void xb_pcg_set_bg0_tile(uint16_t x, uint16_t y, uint16_t attr);
 static inline void xb_pcg_set_bg1_tile(uint16_t x, uint16_t y, uint16_t attr);
-
-#ifdef __ASSEMBLER__
-#else
 
 // Clears all sprites.
 void xb_pcg_clear_sprites(void);
@@ -131,9 +153,51 @@ void xb_pcg_finish_sprites(void);
 // Helper functions for putting tiles in PCG VRAM.
 void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
                               uint16_t num_tiles);
-#endif
 
 // Static implementations ======================================================
+
+// Set to CPU(1) or display(0)
+static inline void xb_pcg_set_disp_en(bool en)
+{
+	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
+	g_xb_pcg_ctrl &= ~(0x0200);
+	if (en) XB_BSET(g_xb_pcg_ctrl, 9);
+	*pcg_ctrl_r = g_xb_pcg_ctrl;
+}
+
+// Change the mappings for BG1 and BG0 nametables
+static inline void xb_pcg_set_bg1_txsel(uint8_t t)
+{
+	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
+	g_xb_pcg_ctrl &= ~(0x0030);
+	g_xb_pcg_ctrl |= (t & 0x03) << 4;
+	*pcg_ctrl_r = g_xb_pcg_ctrl;
+}
+
+static inline void xb_pcg_set_bg0_txsel(uint8_t t)
+{
+	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
+	g_xb_pcg_ctrl &= ~(0x0030);
+	g_xb_pcg_ctrl |= (t & 0x03) << 1;
+	*pcg_ctrl_r = g_xb_pcg_ctrl;
+}
+
+// Enable or disable BG layer display
+static inline void xb_pcg_set_bg1_enable(bool en)
+{
+	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
+	g_xb_pcg_ctrl &= ~(0x0008);
+	if (en) XB_BSET(g_xb_pcg_ctrl, 3);
+	*pcg_ctrl_r = g_xb_pcg_ctrl;
+}
+
+static inline void xb_pcg_set_bg0_enable(bool en)
+{
+	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
+	g_xb_pcg_ctrl &= ~(0x0001);
+	if (en) XB_BSET(g_xb_pcg_ctrl, 0);
+	*pcg_ctrl_r = g_xb_pcg_ctrl;
+}
 
 // Sets a tile. Not recommended for drawing a background or much else beyond
 // small changes or playing around, as it's slower than doing a large DMA.
