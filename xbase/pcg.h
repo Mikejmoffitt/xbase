@@ -18,6 +18,8 @@
 #include "xbase/macro.h"
 #endif
 
+#define XB_PCG_BG_OFFS(x, y) (sizeof(uint16_t)*((x) + ((y) << 6)))
+
 #define XB_PCG_SPR_COUNT 128
 
 // Attributes to specify sprite and backdrop tiles
@@ -99,7 +101,7 @@ extern uint16_t g_xb_pcg_ctrl;
 
 /*
 Control:    0xEB0808
----- --9- ---- ---- D/C          turn on PCG to allow PCG register access
+---- --9- ---- ---- D/C          Disable PCG for faster memory/register access
 ---- ---- --54 ---- BG1 TXsel    nametable mapping
 ---- ---- ---- 3--- BG1 ON
 ---- ---- ---- -21- BG0 TXsel    nametable mapping
@@ -119,8 +121,8 @@ Mode:       0xEB0810
 
 void xb_pcg_init(const XBPcgCfg *c);
 
-// Turn off the display for faster transfer
-static inline void xb_pcg_set_disp_en(bool en);
+// Turn off the display for faster transfer.
+static inline void xb_pcg_set_blank(bool blank);
 
 // Change the mappings for BG1 and BG0 nametables
 static inline void xb_pcg_set_bg1_txsel(uint8_t t);
@@ -157,11 +159,11 @@ void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
 // Static implementations ======================================================
 
 // Set to CPU(1) or display(0)
-static inline void xb_pcg_set_disp_en(bool en)
+static inline void xb_pcg_set_blank(bool blank)
 {
 	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
-	g_xb_pcg_ctrl &= ~(0x0200);
-	if (en) XB_BSET(g_xb_pcg_ctrl, 9);
+	if (blank) XB_BSET(g_xb_pcg_ctrl, 9);
+	else XB_BCLR(g_xb_pcg_ctrl, 9);
 	*pcg_ctrl_r = g_xb_pcg_ctrl;
 }
 
@@ -177,7 +179,7 @@ static inline void xb_pcg_set_bg1_txsel(uint8_t t)
 static inline void xb_pcg_set_bg0_txsel(uint8_t t)
 {
 	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
-	g_xb_pcg_ctrl &= ~(0x0030);
+	g_xb_pcg_ctrl &= ~(0x0006);
 	g_xb_pcg_ctrl |= (t & 0x03) << 1;
 	*pcg_ctrl_r = g_xb_pcg_ctrl;
 }
@@ -204,16 +206,14 @@ static inline void xb_pcg_set_bg0_enable(bool en)
 static inline void xb_pcg_set_bg0_tile(uint16_t x, uint16_t y, uint16_t attr)
 {
 	volatile uint16_t *nt = (volatile uint16_t *)XB_PCG_BG0_NAME;
-	nt += x;
-	nt += (y << 6);
+	nt += XB_PCG_BG_OFFS(x, y)/sizeof(uint16_t);
 	*nt = attr;
 }
 
 static inline void xb_pcg_set_bg1_tile(uint16_t x, uint16_t y, uint16_t attr)
 {
 	volatile uint16_t *nt = (volatile uint16_t *)XB_PCG_BG1_NAME;
-	nt += x;
-	nt += (y << 6);
+	nt += XB_PCG_BG_OFFS(x, y)/sizeof(uint16_t);
 	*nt = attr;
 }
 

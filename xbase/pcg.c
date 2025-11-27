@@ -14,7 +14,7 @@ void xb_pcg_init(const XBPcgCfg *c)
 	pcg_reg[2] = c->vdisp;
 	pcg_reg[3] = c->mode;
 
-	xb_pcg_set_disp_en(0);
+	xb_pcg_set_blank(true);
 	xb_pcg_set_bg0_txsel(0);
 	xb_pcg_set_bg1_txsel(1);
 	xb_pcg_set_bg0_enable(1);
@@ -24,5 +24,5 @@ void xb_pcg_init(const XBPcgCfg *c)
 	xb_pcg_set_bg0_yscroll(0);
 	xb_pcg_set_bg1_yscroll(0);
 	xb_pcg_clear_sprites();
-	xb_pcg_set_disp_en(1);
+	xb_pcg_set_blank(false);
 }
