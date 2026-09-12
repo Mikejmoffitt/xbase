@@ -6,16 +6,19 @@
 # SRCDIR := src
 # RESDIR := res
 # OBJDIR := obj
-# XSP2LIBDIR := xsp2lib
 # XBASEDIR := xbase
 
 # GCC binaries
-AS := human68k-gcc
-CC := human68k-gcc
-OBJCOPY := human68k-objcopy
+
+HUMAN68K := /opt/toolchains/human68k
+
+AS := $(HUMAN68K)/bin/m68k-elf-gcc
+CC := $(HUMAN68K)/bin/m68k-elf-gcc
+# OBJCOPY := $(HUMAN68K)/bin/m68k-elf-objcopy
+ELF2X := $(HUMAN68k)/bin/elf2x.py
 
 # C build flags
-CFLAGS := -std=c11 -O2 -Wall -Werror -I$(SRCDIR) -I$(XBASEDIR) -I.
+CFLAGS := -std=gnu23 -O2 -Wall -Werror -I$(SRCDIR) -I$(XBASEDIR) -I. -I$(HUMAN68K)/include
 CFLAGS += -fcall-used-d2 -fcall-used-a2  # Compatibility with XSP.
 CFLAGS += -mcpu=68000
 CFLAGS += -fomit-frame-pointer
@@ -26,15 +29,14 @@ CFLAGS += -fwrapv
 CFLAGS += -fno-gcse
 CFLAGS += -fms-extensions
 CFLAGS += -fno-web -fno-unit-at-a-time
-CFLAGS += -fno-strict-aliasing
 # TODO: Define X68000 memory map as extern uint8_t arrays and have linker
 # properly point them to the correct locations.
 # TODO: array-bounds and stringop-overflow are bugged on GCC 11.2.0
-CFLAGS += -Wno-array-bounds -Wno-stringop-overflow
+# CFLAGS += -Wno-array-bounds -Wno-stringop-overflow
 
 # Assembler flags
 ASFLAGS := $(CFLAGS)
-ASFLAGS += -I$(SRCDIR) -I$(OBJDIR) -I$(XBASEDIR)
+ASFLAGS += -I$(SRCDIR) -I$(OBJDIR) -I$(XBASEDIR) -I$(HUMAN68K)/include
 ASFLAGS += -Wa,-I$(SRCDIR) -Wa,-I$(OBJDIR) -Wa,-I$(XBASEDIR)
 ASFLAGS += -mcpu=68000 -Wa,-m68000
 ASFLAGS += -Wa,--register-prefix-optional
@@ -42,14 +44,20 @@ ASFLAGS += -Wa,--bitwise-or
 ASFLAGS += -x assembler-with-cpp
 
 # Linker flags
-LDFLAGS := -Wl,-q
+LDFLAGS := -L$(HUMAN68K)/lib
+LDFLAGS += -nostartfiles
+LDFLAGS += -Wl,-q
+LDFLAGS += -Wl,--no-warn-rwx-segments
 LDFLAGS += -Wl,-Map=$(APPNAME).map
+LDFLAGS += -T $(HUMAN68K)/ld_scripts/human68kxfile.x
+LDFLAGS += --specs=picolibc.specs
+LDFLAGS += -lgcc -lc -los
 
 #
 # Build Rules
 #
 
-.PHONY: all clean xb_copy_resources $(OUTDIR)/$(APPNAME).x $(XSP2LIBDIR) $(EXTERNAL_DEPS)
+.PHONY: all clean xb_copy_resources $(OUTDIR)/$(APPNAME).x $(EXTERNAL_DEPS)
 
 # Generic variable for additional files that are a build prerequisite.
 EXTERNAL_DEPS ?=
@@ -63,10 +71,11 @@ xb_copy_resources:
 
 $(OUTDIR)/$(APPNAME).x: $(OBJECTS_C) $(OBJECTS_ASM) xb_copy_resources
 	@bash -c 'printf "\t\e[94m[ LNK ]\e[0m $(OBJECTS_ASM) $(OBJECTS_C)\n"'
-	$(CC) -o $(APPNAME).bin $(LDFLAGS) $(CFLAGS) $(OBJECTS_C) $(OBJECTS_ASM) $(XSP2LIBDIR)/xsp2lib.a
-	@mkdir -p $(OUTDIR)
-	$(OBJCOPY) -v -O xfile $(APPNAME).bin $(OUTDIR)/$(APPNAME).x > /dev/null
-	@rm $(APPNAME).bin
+	$(CC) -o $(APPNAME).elf $(LDFLAGS) $(CFLAGS) $(OBJECTS_C) $(OBJECTS_ASM)
+	@mkdir -p $(OUTDIR)/
+	python3 $(ELF2X) $(APPNAME).elf $@
+# 	$(OBJCOPY) -v -O xfile $(APPNAME).bin $(OUTDIR)/$(APPNAME).x > /dev/null
+#	@rm $(APPNAME).elf
 	@bash -c 'printf "\e[92m\n\tBuild Complete. \e[0m\n\n"'
 
 $(OBJDIR)/%.o: %.c $(XSP2LIBDIR) $(SOURCES_H) $(EXTERNAL_DEPS)
@@ -86,14 +95,6 @@ clean:
 	rm -rf $(OUTDIR)
 	rm -rf $(XSP2LIBDIR)
 	echo $(EXTERNAL_ARTIFACTS) | xargs --no-run-if-empty rm -rf $(EXTERNAL_ARTIFACTS)
-
-#
-# Building XSP for GCC
-#
-$(XSP2LIBDIR): $(XBASEDIR)/tools/xsp-gcc-conv/
-	mkdir -p $@
-	cd $< && make
-	cp $</out/* $@
 
 #
 # Copying to USB-mounted filesystem

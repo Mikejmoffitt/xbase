@@ -265,7 +265,7 @@ void xb_keys_poll(void)
 	memcpy(s_keys.key_bits_prev, s_keys.key_bits, sizeof(s_keys.key_bits));
 	for (uint16_t i = 0; i < XB_ARRAYSIZE(s_keys.key_bits); i++)
 	{
-		s_keys.key_bits[i] = _iocs_bitsns(i);
+		s_keys.key_bits[i] = iocs_bitsns(i);
 	}
 
 	// Generate events

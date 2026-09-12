@@ -40,7 +40,7 @@ uint8_t xb_mfp_read_gpdr(void)
 
 void *xb_mfp_set_interrupt(uint16_t vector, void (*interrupt_handler)(void))
 {
-	return _iocs_b_intvcs(vector, interrupt_handler);
+	return iocs_b_intvcs(vector, interrupt_handler);
 }
 
 void xb_mfp_set_interrupt_enable(uint16_t vector, bool enabled)

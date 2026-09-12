@@ -92,7 +92,6 @@ typedef struct XBPcgCfg
 	.global	xb_pcg_set_bg1_enable
 	.global	xb_pcg_set_bg0_enable
 	.global	xb_pcg_clear_sprites
-	.global	
 
 	.extern	g_xb_pcg_ctrl
 #else
