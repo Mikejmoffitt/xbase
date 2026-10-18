@@ -4,7 +4,6 @@
 #include "xbase/macro.h"
 
 #include "xbase/crtc.h"
-#include "xbase/ipl.h"
 #include "xbase/joy.h"
 #include "xbase/keys.h"
 #include "xbase/mfp.h"

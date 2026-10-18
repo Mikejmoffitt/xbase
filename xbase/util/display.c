@@ -4,8 +4,8 @@
 
 static void apply_mode(const XBDisplayMode *mode)
 {
+	xb_vidcon_set(&mode->vidcon);
 	xb_crtc_set_timing(&mode->crtc);
-	xb_vidcon_init(&mode->vidcon);
 
 #ifdef XB_DISPLAY_512PX_PCG_HACK
 	// Hack to init the PCG with alternative register values to clear the

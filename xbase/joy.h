@@ -1,7 +1,7 @@
 /*
 
 XBase Joypad Functions (joy)
-c. Michael Moffitt 2021-2022
+c. Michael Moffitt 2021-2026
 
 The X68000 has two controller ports for joypads. A standard joypad has a two-
 dimensional directional input as well as two buttons, the same as on the MSX.
@@ -11,7 +11,7 @@ your game or program's main loop. This function will capture the state of the
 joypad, as well as generate variables which indicate a positive or negative
 edge for each button (to detect the instant of a press or release).
 
-Button data for both players is accessible through the XBJoyState array
+Button data for both players is accessible through the XBJoy array
 called g_xb_joystate. Data is valid after calling xb_joy_poll().
 
 While the standard configuration as described before is the most typical, some
@@ -72,35 +72,35 @@ The default mode is XB_JOY_MODE_STANDARD.
 #define XB_JOY_COUNT 2
 
 // Bit numbers for the joy data.
-#define XB_JOY_UP     0
-#define XB_JOY_DOWN   1
-#define XB_JOY_LEFT   2
-#define XB_JOY_RIGHT  3
+#define XB_BTN_UP_BIT     0
+#define XB_BTN_DOWN_BIT   1
+#define XB_BTN_LEFT_BIT   2
+#define XB_BTN_RIGHT_BIT  3
 // bit 4 is skipped
-#define XB_JOY_A      5
-#define XB_JOY_B      6
+#define XB_BTN_A_BIT      5
+#define XB_BTN_B_BIT      6
 // Extended additions.
-#define XB_JOY_START  7
-#define XB_JOY_SELECT 8
+#define XB_BTN_START_BIT  7
+#define XB_BTN_SELECT_BIT 8
 // CPSF-MD additions.
-#define XB_JOY_C      9
-#define XB_JOY_X     10
-#define XB_JOY_Y     11
-#define XB_JOY_Z     12
+#define XB_BTN_C_BIT      9
+#define XB_BTN_X_BIT     10
+#define XB_BTN_Y_BIT     11
+#define XB_BTN_Z_BIT     12
 
 // Masks for use with bitwise operations (andi is faster than btst)
-#define XB_JOY_MASK_UP     XB_BITVAL(XB_JOY_UP)
-#define XB_JOY_MASK_DOWN   XB_BITVAL(XB_JOY_DOWN)
-#define XB_JOY_MASK_LEFT   XB_BITVAL(XB_JOY_LEFT)
-#define XB_JOY_MASK_RIGHT  XB_BITVAL(XB_JOY_RIGHT)
-#define XB_JOY_MASK_A      XB_BITVAL(XB_JOY_A)
-#define XB_JOY_MASK_B      XB_BITVAL(XB_JOY_B)
-#define XB_JOY_MASK_START  XB_BITVAL(XB_JOY_START)
-#define XB_JOY_MASK_SELECT XB_BITVAL(XB_JOY_SELECT)
-#define XB_JOY_MASK_C      XB_BITVAL(XB_JOY_C)
-#define XB_JOY_MASK_X      XB_BITVAL(XB_JOY_X)
-#define XB_JOY_MASK_Y      XB_BITVAL(XB_JOY_Y)
-#define XB_JOY_MASK_Z      XB_BITVAL(XB_JOY_Z)
+#define XB_BTN_UP     XB_BITVAL(XB_BTN_UP_BIT)
+#define XB_BTN_DOWN   XB_BITVAL(XB_BTN_DOWN_BIT)
+#define XB_BTN_LEFT   XB_BITVAL(XB_BTN_LEFT_BIT)
+#define XB_BTN_RIGHT  XB_BITVAL(XB_BTN_RIGHT_BIT)
+#define XB_BTN_A      XB_BITVAL(XB_BTN_A_BIT)
+#define XB_BTN_B      XB_BITVAL(XB_BTN_B_BIT)
+#define XB_BTN_START  XB_BITVAL(XB_BTN_START_BIT)
+#define XB_BTN_SELECT XB_BITVAL(XB_BTN_SELECT_BIT)
+#define XB_BTN_C      XB_BITVAL(XB_BTN_C_BIT)
+#define XB_BTN_X      XB_BITVAL(XB_BTN_X_BIT)
+#define XB_BTN_Y      XB_BITVAL(XB_BTN_Y_BIT)
+#define XB_BTN_Z      XB_BITVAL(XB_BTN_Z_BIT)
 
 #define XB_JOY_MODE_STANDARD 0x00
 #define XB_JOY_MODE_6BUTTON  0x01
@@ -111,25 +111,25 @@ The default mode is XB_JOY_MODE_STANDARD.
 //
 #ifdef __ASSEMBLER__
 	.struct 0
-XBJoyState.mode:	ds.w 1
-XBJoyState.now:		ds.w 1
-XBJoyState.prev:	ds.w 1
-XBJoyState.pos:		ds.w 1
-XBJoyState.neg:		ds.w 1
-XBJoyState.len:
+XBJoy.mode:            ds.w 1
+XBJoy.now:             ds.w 1
+XBJoy.prev:            ds.w 1
+XBJoy.pos:             ds.w 1
+XBJoy.neg:             ds.w 1
+XBJoy.len:
 
 	.extern	g_xb_joystate
 #else
-typedef struct XBJoyState
+typedef struct XBJoy
 {
 	uint16_t mode;  // XBJoyMode
 	uint16_t now;   // The current data.
 	uint16_t prev;  // The previous sampling period's data.
 	uint16_t pos;   // Newly pressed buttons.
 	uint16_t neg;   // Newly released buttons.
-} XBJoyState;
+} XBJoy;
 
-extern XBJoyState g_xb_joystate[XB_JOY_COUNT];
+extern XBJoy g_xb_joystate[XB_JOY_COUNT];
 #endif
 
 #ifdef __ASSEMBLER__

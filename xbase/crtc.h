@@ -1,15 +1,17 @@
 // XBase CRTC and Scroll Functions (crtc)
-// (c) Michael Moffitt 2021-2024
+// (c) Michael Moffitt 2021-2026
 //
 // The X68000 CRTC manages a few aspects related to video, limit not only to
 // video output and display timing:
+//
 //   * Raster configuration (video timing)
 //   * TVRAM and GVRAM scroll
 //   * Raster Copy
 //   * Control Port
 //
 // Display timing is configured by populating an XBCrtcTimingCfg struct and
-// passing it to xb_crtc_set_timing(). All registers are set at once.
+// passing it to xb_crtc_set_timing(). All registers are set at once. It is
+// suggested to configure Vidcon first.
 //
 // It is acceptable to call xb_crtc_set_timing() more than once in order to
 // support multiple configurations.
@@ -35,19 +37,32 @@
 //          ds.b bCrtcTimingCfg.len
 //
 // TVRAM and GVRAM scroll planes' scroll is controlled by the CRTC.
-// Edit values in the global scroll configuration array, g_xb_crtc_scroll, and
+// Edit values in the global scroll configuration array, g_xb_scroll, and
 // then call xb_crtc_set_scroll() to commit values to registers. This allows
 // all registers to be updated in one pass. It is suggested that this is done
 // during the vertical blanking interval.
 //
-// Please see XBCrtcScrollConfig for the fields available.
-//
 // Raster Copy and Control Port have not yet had support added.
 // TODO: Read Page 224 of Inside X68000 for raster copy.
 //
-// Raster Notes:
+
+#pragma once
+
+#include "xbase/macro.h"
+#include "xbase/memmap.h"
+
+#ifndef __ASSEMBLER__
+#include <stdint.h>
+#endif
+
 //
-// Calculations for R00 - R07, translated from InsideX68000:
+// Raster Timing Configuration Structures
+//
+
+//
+// R00-R07 calculations, from Inside X68000:
+//
+
 //
 // R00 = ((Hsync period * H total dots) / (H active dots * 8)) - 1
 // R01 = ((Hsync pulse * H total dots) / (H active dots * 8)) - 1
@@ -73,7 +88,10 @@
 // R08     $1B     $1B     $1B     $1B     $2C     $2C     $24
 //
 // In addition to the timing registers, there is R08, the horizontal adjust.
-// R20 (0xE80028) contains some timing and color flags:
+//
+
+//
+// R20: Flags
 //
 // fedc ba98 7654 3210
 // .... .zcc ...f vvhh
@@ -110,15 +128,17 @@
 //
 // The frequency select also appears to active a clock divider (active low).
 
-#pragma once
-
-#ifndef __ASSEMBLER__
-#include <stdint.h>
-#endif
-
-//
-// Raster Timing Configuration Structures
-//
+#define XB_CRTC_R20_HSIZE_256  (0x0<<0)
+#define XB_CRTC_R20_HSIZE_512  (0x1<<0)
+#define XB_CRTC_R20_HSIZE_768  (0x2<<0)
+#define XB_CRTC_R20_VSIZE_256  (0x0<<3)
+#define XB_CRTC_R20_VSIZE_512  (0x1<<3)
+#define XB_CRTC_R20_FREQ_31K   SAI_BITVAL(4)
+// Rather than using these below, just call xb_vidcon_get_crtc_r20().
+#define XB_CRTC_R20_COL_16     (0x00<8)
+#define XB_CRTC_R20_COL_256    (0x01<8)
+#define XB_CRTC_R20_COL_65536  (0x03<8)
+#define XB_CRTC_R20_SIZ        SAI_BITVAL(10)
 
 #ifdef __ASSEMBLER__
 	.struct 0
@@ -147,9 +167,7 @@ typedef struct XBCrtcTimingCfg
 	uint16_t vdisp_end;     // "
 	uint16_t ext_h_adjust;
 	// R09 - R19 are not represented here (h-int, scroll registers).
-	// R20 at 0xE80028. Bits 8-10 (color, plane size) should match the video
-	// controller's top 3 bits in the "screen" field (0xE82400).
-	uint16_t flags;
+	uint16_t flags;  // R20
 } XBCrtcTimingCfg;
 #endif
 
@@ -179,7 +197,7 @@ XBCrtcScrollCfg.gp2:		ds.w 2
 XBCrtcScrollCfg.gp3:		ds.w 2
 XBCrtcScrollCfg.len:
 
-	.extern	g_xb_crtc_scroll
+	.extern	g_xb_scroll
 #else
 typedef struct XBCrtcScrollCfg
 {
@@ -189,25 +207,34 @@ typedef struct XBCrtcScrollCfg
 	{
 		struct
 		{
-			uint16_t gp0[2];  // GVRAM0
-			uint16_t gp1[2];  // GVRAM1
-			uint16_t gp2[2];  // GVRAM2
-			uint16_t gp3[2];  // GVRAM3
+			uint16_t gp0[2];  // GR Page 0
+			uint16_t gp1[2];  // "       1
+			uint16_t gp2[2];  // "       2
+			uint16_t gp3[2];  // "       3
 		};
 		uint16_t gp[8];  // All GVRAM scroll
 	};
 } XBCrtcScrollCfg;
 
-extern XBCrtcScrollCfg g_xb_crtc_scroll;
+extern XBCrtcScrollCfg g_xb_scroll;
 #endif
 
 //
 // Functions
 //
 #ifndef __ASSEMBLER__
+
+void xb_crtc_init_scroll(void);
+
 void xb_crtc_set_timing(const XBCrtcTimingCfg *c);
-void xb_crtc_set_raster_interrupt(uint16_t v);
-void xb_crtc_set_scroll(void);  // Update register values.
+
+static inline void xb_crtc_set_raster_interrupt(uint16_t line)
+{
+	volatile uint16_t *crtc = (volatile uint16_t *)XB_CRTC_BASE;
+	crtc[0x14] = line;
+}
+
+void xb_crtc_update_regs(void);  // Call at vblank.
+
 // TODO: Raster copy stuff (R21-R23)
-void xb_crtc_set_control(uint8_t v);
 #endif

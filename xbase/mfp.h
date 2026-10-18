@@ -64,7 +64,7 @@
 #define XB_MFP_GPDR_POWSW  2
 #define XB_MFP_GPDR_OPMIRQ 3
 #define XB_MFP_GPDR_VDISP  4
-// TODO: Is bit 7 hooked upp?
+// TODO: Is bit 7 hooked up?
 #define XB_MFP_GPDR_VSYNC  6
 #define XB_MFP_GPDR_HSYNC  7
 

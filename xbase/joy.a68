@@ -3,7 +3,7 @@
 	.section	.bss
 	.global		g_xb_joystate
 
-g_xb_joystate:		ds.b XBJoyState.len*XB_JOY_COUNT
+g_xb_joystate:		ds.b XBJoy.len*XB_JOY_COUNT
 
 	.section	.text
 	
@@ -29,7 +29,7 @@ xb_joy_poll:
 	lea	g_xb_joystate, a0
 	lea	XB_JOY_BASE, a1
 	bsr.b	joy_poll_sub
-	lea	XBJoyState.len(a0), a0
+	lea	XBJoy.len(a0), a0
 	addq.w	#2, a1
 	; fall-through to joy_poll_sub
 
@@ -37,42 +37,42 @@ xb_joy_poll:
 ; a1 = input base
 joy_poll_sub:
 	moveq	#0, d0
-	move.w	XBJoyState.now(a0), d1
-	move.w	d1, XBJoyState.prev(a0)
+	move.w	XBJoy.now(a0), d1
+	move.w	d1, XBJoy.prev(a0)
 	move.b	(a1), d0
 	not.b	d0
 
-;	tst.w	XBJoyState.mode(a0)
+;	tst.w	XBJoy.mode(a0)
 ;	bne.w	sample_sixbutton  TODO
 
 	; Read extended buttons based on illegal switch combos
 	swap	d1  ; preserve previous
 	move.w	d0, d1
-	andi.w	#XB_JOY_MASK_UP | XB_JOY_MASK_DOWN, d1
-	cmpi.w	#XB_JOY_MASK_UP | XB_JOY_MASK_DOWN, d1
+	andi.w	#XB_BTN_UP | XB_BTN_DOWN, d1
+	cmpi.w	#XB_BTN_UP | XB_BTN_DOWN, d1
 	bne.s	0f
-	ori.w	#XB_JOY_MASK_SELECT, d0
-	andi.w	#~(XB_JOY_MASK_UP | XB_JOY_MASK_DOWN), d0
+	ori.w	#XB_BTN_SELECT, d0
+	andi.w	#~(XB_BTN_UP | XB_BTN_DOWN), d0
 0:
 	move.w	d0, d1
-	andi.w	#XB_JOY_MASK_LEFT | XB_JOY_MASK_RIGHT, d1
-	cmpi.w	#XB_JOY_MASK_LEFT | XB_JOY_MASK_RIGHT, d1
+	andi.w	#XB_BTN_LEFT | XB_BTN_RIGHT, d1
+	cmpi.w	#XB_BTN_LEFT | XB_BTN_RIGHT, d1
 	bne.s	1f
-	ori.w	#XB_JOY_MASK_START, d0
-	andi.w	#~(XB_JOY_MASK_LEFT | XB_JOY_MASK_RIGHT), d0
+	ori.w	#XB_BTN_START, d0
+	andi.w	#~(XB_BTN_LEFT | XB_BTN_RIGHT), d0
 1:
 	swap	d1  ; bring back previous
 	; Generate edges
 	move.w	d0, d2
-	move.w	d0, XBJoyState.now(a0)
+	move.w	d0, XBJoy.now(a0)
 	not.w	d1
 	and.w	d1, d0
-	move.w	d0, XBJoyState.pos(a0)
+	move.w	d0, XBJoy.pos(a0)
 
 	move.w	d2, d0
-	move.w	XBJoyState.prev(a0), d0
+	move.w	XBJoy.prev(a0), d0
 	not.w	d0
 	and.w	d0, d1
-	move.w	d1, XBJoyState.neg(a0)
+	move.w	d1, XBJoy.neg(a0)
 
 	rts

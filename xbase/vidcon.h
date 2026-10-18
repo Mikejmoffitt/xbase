@@ -3,7 +3,7 @@
 //
 // Provides some helper functions for configuring the video controller. The
 // configuration is stored in three words of shadow copies of the registers,
-// which are initially set with xb_vidcon_init_default().
+// which are initially set with xb_vidcon_set_default().
 //
 // Afterwards, individual bits may be set or cleared with the clearly named
 // helper functions. These functions modify the shadow copies. To write the shadow
@@ -11,27 +11,112 @@
 // the register commit occurs during video blank.
 #pragma once 
 
+#include "xbase/macro.h"
+#include "xbase/memmap.h"
+
 #ifndef __ASSEMBLER__
 #include <stdint.h>
-#include "xbase/memmap.h"
 #endif
 
-// RGB palette entry macro
-#define XB_PAL_RGB5(r, g, b) ( (((r) & 0x1F) << 6) | (((g) & 0x1F) << 11) | (((b) & 0x1F) << 1) )
-#define XB_PAL_RGB4(r, g, b) ( (((r << 1) & 0x1F) << 6) | (((g << 1) & 0x1F) << 11) | (((b << 1) & 0x1F) << 1) )
-#define XB_PAL_RGB8(r, g, b) ( (((r >> 3) & 0x1F) << 6) | (((g >> 3) & 0x1F) << 11) | (((b >> 3) & 0x1F) << 1) )
+//
+// R0: Screen Config
+//
+// Bits 0-1: color depth (0 = 16, 1 = 256, 2 = invalid, 3 = 65536)
+// Bit 2: "Real screen mode" 0 = 512x512, 1 = 1024x1024
+// This should match CRTC flags / R20 bits 8-10 shifted down to bits 0-2.
 
-/*
+#define XB_VIDCON_R0_COL_16    (0)
+#define XB_VIDCON_R0_COL_256   (1)
+#define XB_VIDCON_R0_COL_65536 (3)
+#define XB_VIDCON_R0_SIZ       XB_BITVAL(2)
 
-Example config:
+//
+// R1: Priority
+//
+// Ordering between layer groups, and between the graphics planes within
+// the graphics plane group.
+//
+// 0 = topmost; 3 = bottom-most.
+//
+// fedc ba98 7654 3210
+// ..SS .... .... .... SP priority
+// .... TT.. .... .... TX priority
+// .... ..GG .... .... GR priority
+// .... .... 33.. ....  --> GP3 priority
+// .... .... ..22 ....  --> GP2 priority
+// .... .... .... 11..  --> GP1 priority
+// .... .... .... ..00  --> GP0 priority
+//
+// Note: When in two-page mode (256 colors) or one-page mode (62256 colors) the
+// page ordering must still be configured.
+// For one-page mode, set the priorities in order with the pages (e.g. GP0=0)
+// For two-page mode, set GP0/GP1 and GP2/GP3 consecutively as pairs.
 
-screen = 0x0000;  // 512x512, 16-color
-prio = 0x12E4;  // Text > PCG > (GP0 > GP1 > GP2 > GP3)
-flags = 0x007F;  // Enable all layers.
+#define XB_VIDCON_PRI3 0
+#define XB_VIDCON_PRI2 1
+#define XB_VIDCON_PRI1 2
+#define XB_VIDCON_PRI0 3
 
-*/
+#define XB_VIDCON_PRIO_HI XB_VIDCON_PRI3
+#define XB_VIDCON_PRIO_LO XB_VIDCON_PRI0
+// Source ordering
+#define XB_VIDCON_R1_PRIO_SP(x) ((x)<<0xC)
+#define XB_VIDCON_R1_PRIO_TX(x) ((x)<<0xA)
+#define XB_VIDCON_R1_PRIO_GR(x) ((x)<<0x8)
+// GP Ordering for the four GP pages.
+#define XB_VIDCON_R1_PRIO_GP3(x) ((x)<<0x6)
+#define XB_VIDCON_R1_PRIO_GP2(x) ((x)<<0x4)
+#define XB_VIDCON_R1_PRIO_GP1(x) ((x)<<0x2)
+#define XB_VIDCON_R1_PRIO_GP0(x) ((x)<<0x0)
 
-// TODO: Enums for screen, prio, and flag registers.
+//
+// R2: Flags
+//
+// fedc ba98 7654 3210
+// Y... .... .... .... YS: Video cut, maybe related to super-impose function.
+// .A.. .... .... .... Ah: translucent text palette 0 regardless of exon ?
+// ..v. .... .... .... Vht: Video image (used in color image unit)
+// ...E .... .... .... Exon: Enable special priority / translucent mode
+// .... H... .... .... Hp: special priority (0) or translucent (1) select
+// .... .B.. .... .... Bp: Sharp reserved (0) or something else (1) ???
+// .... ..G. .... .... GG: Set translucent: graphics screen
+// .... ...T .... .... GT: Set translucent: text/sprite screen
+// .... .... b... .... border: enable border color display
+// .... .... .P.. .... Enable PCG display
+// .... .... ..t. .... Enable Text display
+// .... .... ...g .... Enable GP display
+// .... .... .... 3... GP3 enable
+// .... .... .... .2.. GP2 enable
+// .... .... .... ..1. GP1 enable
+// .... .... .... ...0 GP0 enable
+
+// Transparency / etc settings (upper byte)
+#define XB_VIDCON_R2_YS        XB_BITVAL(0xF)
+#define XB_VIDCON_R2_AH        XB_BITVAL(0xE)
+#define XB_VIDCON_R2_VHT       XB_BITVAL(0xD)
+#define XB_VIDCON_R2_EXON      XB_BITVAL(0xC)
+#define XB_VIDCON_R2_H_P       XB_BITVAL(0xB)
+#define XB_VIDCON_R2_B_P       XB_BITVAL(0xA)
+#define XB_VIDCON_R2_G_G       XB_BITVAL(0x9)
+#define XB_VIDCON_R2_G_T       XB_BITVAL(0x8)
+// Layer enablement (lower byte)
+#define XB_VIDCON_R2_BON       XB_BITVAL(0x7)
+#define XB_VIDCON_R2_SON       XB_BITVAL(0x6)
+#define XB_VIDCON_R2_TON       XB_BITVAL(0x5)
+#define XB_VIDCON_R2_GS4       XB_BITVAL(0x4)
+#define XB_VIDCON_R2_GS3       XB_BITVAL(0x3)
+#define XB_VIDCON_R2_GS2       XB_BITVAL(0x2)
+#define XB_VIDCON_R2_GS1       XB_BITVAL(0x1)
+#define XB_VIDCON_R2_GS0       XB_BITVAL(0x0)
+
+#define XB_VIDCON_R2_ALL_ON    (XB_VIDCON_R2_BON | \
+                                XB_VIDCON_R2_SON | \
+                                XB_VIDCON_R2_TON | \
+                                XB_VIDCON_R2_GS4 | \
+                                XB_VIDCON_R2_GS3 | \
+                                XB_VIDCON_R2_GS2 | \
+                                XB_VIDCON_R2_GS1 | \
+                                XB_VIDCON_R2_GS0)
 
 #ifdef __ASSEMBLER__
 	.struct 0
@@ -39,106 +124,35 @@ XBVidconCfg.screen:	ds.w 1
 XBVidconCfg.prio:	ds.w 1
 XBVidconCfg.flags:	ds.w 1
 XBVidconCfg.len:
+
 #else
 typedef struct XBVidconCfg
 {
-	// R0: Screen
-	// Bits 0-1: color depth (0 = 16, 1 = 256, 2 = invalid, 3 = 65536)
-	// Bit 2: "Real screen mode" 0 = 512x512, 1 = 1024x1024
-	// This should match CRTC flags / R20 bits 8-10 shifted down to bits 0-2.
-	uint16_t screen;
-
-	// R1: Priority
-	// Ordering between layer groups, and between the graphics planes within
-	// the graphics plane group.
-	// 0 = topmost; 3 = bottom-most.
-	// 15 -------------- 0
-	// ..PP .... .... .... PCG priority
-	// .... TT.. .... .... Text priority
-	// .... ..GG .... .... GP priority
-	// .... .... 33.. ....  --> GP3 priority
-	// .... .... ..22 ....  --> GP2 priority
-	// .... .... .... 11..  --> GP1 priority
-	// .... .... .... ..00  --> GP0 priority
-	uint16_t prio;
-
-	// R2: Flags
-	// 15 -------------- 0
-	// V... .... .... .... Video cut / don't show image even when superimposing
-	// .A.. .... .... .... Ah: translucent text palette 0 regardless of exon ?
-	// ..v. .... .... .... Vht: Video image (used in color image unit)
-	// ...E .... .... .... Exon: Enable special priority / translucent mode
-	// .... H... .... .... Hp: special priority (0) or translucent (1) select
-	// .... .B.. .... .... Bp: Sharp reserved (0) or something else (1) ???
-	// .... ..G. .... .... GG: Set translucent: graphics screen
-	// .... ...T .... .... GT: Set translucent: text/sprite screen
-	// .... .... b... .... border: enable border color display
-	// .... .... .P.. .... Enable PCG display
-	// .... .... ..t. .... Enable Text display
-	// .... .... ...g .... Enable GP display
-	// .... .... .... 3... GP3 enable
-	// .... .... .... .2.. GP2 enable
-	// .... .... .... ..1. GP1 enable
-	// .... .... .... ...0 GP0 enable
-	uint16_t flags;
+	uint16_t screen;  // R0
+	uint16_t prio;    // R1
+	uint16_t flags;   // R2
 } XBVidconCfg;
 #endif
 
 #ifdef __ASSEMBLER__
-	.global	xb_vidcon_init
+	.extern	g_xb_vidcon_cfg
+	.global	xb_vidcon_set
+	.global	xb_vidcon_update_regs
+
 #else
-void xb_vidcon_init(const XBVidconCfg *c);
 
-// Graphics plane palette entries
-static inline void xb_vidcon_set_gp_color(uint16_t index, uint16_t val)
+extern XBVidconCfg g_xb_vidcon_cfg;
+
+static inline void xb_vidcon_set(const XBVidconCfg *c)
 {
-	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_GP_PAL_BASE;
-	p += index;
-	*p = val;
+	g_xb_vidcon_cfg = *c;
 }
 
-// Text plane color entries
-static inline void xb_vidcon_set_text_color(uint16_t index, uint16_t val)
+static inline uint16_t xb_vidcon_get_crtc_r20(void)
 {
-	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_TX_PAL_BASE;
-	p += index;
-	*p = val;
+	return (g_xb_vidcon_cfg.screen & 0x7) << 8;
 }
 
-// Sprite palette entries
-static inline void xb_vidcon_set_pcg_color(uint16_t index, uint16_t val)
-{
-	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_PCG_PAL_BASE;
-	p += index;
-	*p = val;
-}
+void xb_vidcon_update_regs(void);
 
-static inline void xb_vidcon_set_gp_pal(uint16_t palno, const uint16_t *src)
-{
-	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_GP_PAL_BASE;
-	p = &p[palno * 16];
-	for (uint16_t i = 0; i < 16; i++)
-	{
-		p[i] = src[i];
-	}
-}
-
-static inline void xb_vidcon_set_text_pal(const uint16_t *src)
-{
-	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_TX_PAL_BASE;
-	for (uint16_t i = 0; i < 16; i++)
-	{
-		p[i] = src[i];
-	}
-}
-
-static inline void xb_vidcon_set_pcg_pal(uint16_t palno, const uint16_t *src)
-{
-	volatile uint16_t *p = (volatile uint16_t *)XB_VIDCON_PCG_PAL_BASE;
-	p = &p[palno * 16];
-	for (uint16_t i = 0; i < 16; i++)
-	{
-		p[i] = src[i];
-	}
-}
 #endif
