@@ -4,7 +4,7 @@
 ; Bitfield indicating that a palette line needs to be copied
 g_xb_pal_dirty:         ds.l 1
 ; Palette buffer
-g_xb_pal:               ds.w XB_PAL_LINE_SIZE*XB_PAL_LINE_COUNT
+g_xb_pal:               ds.w XB_PAL_COUNT
 
 	.section	.text
 
@@ -30,10 +30,15 @@ init_loop:
 	rts
 
 ; void xb_pal_poll(void);
+
+#define POLL_CLOBBER d3-d5/a3-a5
+
 xb_pal_poll:
 	move.l	g_xb_pal_dirty, d0
 	beq.s	poll_ret
-	movem.l	d3-d5/a3-a5, -(sp)
+
+	movem.l	POLL_CLOBBER, -(sp)
+
 	moveq	#XB_PAL_LINE_SIZE*2, d2  ; advance offset
 	lea	g_xb_pal, a0
 	lea	XB_VIDCON_GP_PAL_BASE, a1
@@ -48,12 +53,13 @@ poll_loop:
 	adda.l	d5, a1  ; dest advance
 	bra.s	poll_loop
 
-0:  ; skip source, advance test, go again
+0:  ; skip source, advance dest, go again
 	adda.l	d5, a0
+	adda.l	d5, a1
 	bra.s	poll_loop
 
 poll_loop_done:
 	clr.l	g_xb_pal_dirty
-	movem.l	(sp)+, d3-d5/a3-a5
+	movem.l	(sp)+, POLL_CLOBBER
 poll_ret:
 	rts
