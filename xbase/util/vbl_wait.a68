@@ -2,16 +2,19 @@
 
 #define VBL_VECTOR XB_MFP_INT_VDISP
 
-	.section	.data
-vbl_wait_flag:	dc.w $FFFF
+	.global	g_vbl_count
+	.global	xb_vbl_wait_init
+	.global	xb_vbl_wait
+
 	.section	.bss
-vbl_count:	ds.l 1
+g_vbl_count:             ds.l 1
+s_vbl_wait_flag:         ds.b 1
 	.section	.text
 
 // TODO: Is this the start or end of VDISP?
 vbl_isr:
-	clr.w	vbl_wait_flag
-	addq.l	#1, vbl_count
+	sf	s_vbl_wait_flag
+	addq.l	#1, g_vbl_count
 	rte
 
 ; void *xb_vbl_wait_init(void)
@@ -35,13 +38,10 @@ xb_vbl_wait_init:
 
 ; void xb_vbl_wait(void)
 xb_vbl_wait:
-	move.w	#1, vbl_wait_flag
-wait_loop_top:
-	tst.w	vbl_wait_flag
-	bne.s	wait_loop_top
-	rts
-
-; uint32_t xb_vbl_get_frame_count(void)
-xb_vbl_get_frame_count:
-	move.l	vbl_count, d0
+	st	s_vbl_wait_flag
+0:
+	stop	#$2000
+	; TODO: use stop?
+	tst.b	s_vbl_wait_flag
+	bne.s	0b
 	rts

@@ -1,25 +1,25 @@
+//
+// XBase 16.16 Fixed point types and utility macros.
+//
+
 #pragma once
 // Fixed point types
 
 #ifndef __ASSEMBLER__
 #include <stdint.h>
 typedef int32_t fix32_t;
-typedef int16_t fix16_t;
 typedef uint32_t ufix32_t;
-typedef uint16_t ufix16_t;
 #endif
 
-#ifndef XB_FIXED_BITS
-#define XB_FIXED_BITS 4
-#endif  // XB_FIXED_BITS
+#define FIX_BITS 16
 
 // Precision configuration
-#define FIX_COEF (1 << XB_FIXED_BITS)
+#define FIX_COEF (1 << FIX_BITS)
 
 // Fixed point conversions
 #define INTTOFIX(x) ((x) * FIX_COEF)
 #define FIXTOINT(x) ((int)((x) / FIX_COEF))
 
 // Fixed point multiplication and division
-#define FIXMUL(x, y) (((x) * (y)) >> XB_FIXED_BITS)
-#define FIXDIV(x, y) (((x) << XB_FIXED_BITS) / (y))
+#define FIXMUL(x, y) (((x) * (y)) >> FIX_BITS)
+#define FIXDIV(x, y) (((x) << XB_FIX_BITS) / (y))
