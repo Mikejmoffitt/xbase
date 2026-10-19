@@ -12,13 +12,10 @@ XB_SOURCES_ASM := \
 #
 
 XB_SOURCES_C := \
-	$(XB)/xbase/vidcon.c \
-	$(XB)/xbase/crtc.c \
 	$(XB)/xbase/mfp.c \
 	$(XB)/xbase/pcg.c \
 	$(XB)/xbase/keys.c \
-	$(XB)/xbase/util/crtcgen.c \
-	$(XB)/xbase/util/display.c \
+	$(XB)/xbase/util/scroll.c \
 	$(XB)/xbase/util/xspman.c \
 #
 

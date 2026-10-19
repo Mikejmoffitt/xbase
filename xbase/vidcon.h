@@ -13,6 +13,7 @@
 
 #include "xbase/macro.h"
 #include "xbase/memmap.h"
+#include "xbase/crtc.h"
 
 #ifndef __ASSEMBLER__
 #include <stdint.h>
@@ -90,6 +91,9 @@
 // .... .... .... ..1. GP1 enable
 // .... .... .... ...0 GP0 enable
 
+// See Inside X68000 page 209 for information on the mixing and impact of R2
+// bits $C, $9, and $8.
+
 // Transparency / etc settings (upper byte)
 #define XB_VIDCON_R2_YS        XB_BITVAL(0xF)
 #define XB_VIDCON_R2_AH        XB_BITVAL(0xE)
@@ -118,41 +122,212 @@
                                 XB_VIDCON_R2_GS1 | \
                                 XB_VIDCON_R2_GS0)
 
-#ifdef __ASSEMBLER__
-	.struct 0
-XBVidconCfg.screen:	ds.w 1
-XBVidconCfg.prio:	ds.w 1
-XBVidconCfg.flags:	ds.w 1
-XBVidconCfg.len:
+#ifndef __ASSEMBLER__
 
-#else
-typedef struct XBVidconCfg
+// Set all regs at once.
+static inline void xb_vidcon_set(const uint16_t *r)
 {
-	uint16_t screen;  // R0
-	uint16_t prio;    // R1
-	uint16_t flags;   // R2
-} XBVidconCfg;
-#endif
-
-#ifdef __ASSEMBLER__
-	.extern	g_xb_vidcon_cfg
-	.global	xb_vidcon_set
-	.global	xb_vidcon_update_regs
-
-#else
-
-extern XBVidconCfg g_xb_vidcon_cfg;
-
-static inline void xb_vidcon_set(const XBVidconCfg *c)
-{
-	g_xb_vidcon_cfg = *c;
+	*(volatile uint16_t *)XB_VIDCON_R0 = r[0];
+	*(volatile uint16_t *)XB_VIDCON_R1 = r[1];
+	*(volatile uint16_t *)XB_VIDCON_R2 = r[2];
 }
 
-static inline uint16_t xb_vidcon_get_crtc_r20(void)
+// Updates CRTC and PCG registers accordingly.
+static inline void xb_vidcon_update_crtc(void)
 {
-	return (g_xb_vidcon_cfg.screen & 0x7) << 8;
+	xb_crtc_update_vidcon_bits(((*(const volatile uint16_t *)XB_VIDCON_R0) & 0x7) << 8);
 }
 
-void xb_vidcon_update_regs(void);
+// R0 adjustments. Be sure to update CRTC R20 using xb_vidcon_get_crtc_r20!
+static inline void xb_vidcon_set_col(const uint16_t col)
+{
+	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R0;
+	rdata &= 0x03;
+	rdata |= col;
+	*(volatile uint16_t *)XB_VIDCON_R0 = rdata;
+}
+
+static inline void xb_vidcon_set_size(bool screen_1024px)
+{
+	if (screen_1024px) *(volatile uint16_t *)XB_VIDCON_R0 |= XB_VIDCON_R0_SIZ;
+	else *(volatile uint16_t *)XB_VIDCON_R0 &= ~(XB_VIDCON_R0_SIZ);
+}
+
+// R1 : Priority
+static inline void xb_vidcon_set_sp_prio(uint16_t prio)
+{
+	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R1;
+	rdata &= XB_VIDCON_R1_PRIO_SP(XB_VIDCON_PRIO_HI);
+	rdata |= XB_VIDCON_R1_PRIO_SP(prio);
+	*(volatile uint16_t *)XB_VIDCON_R1 = rdata;
+}
+
+static inline void xb_vidcon_set_tx_prio(uint16_t prio)
+{
+	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R1;
+	rdata &= XB_VIDCON_R1_PRIO_TX(XB_VIDCON_PRIO_HI);
+	rdata |= XB_VIDCON_R1_PRIO_TX(prio);
+	*(volatile uint16_t *)XB_VIDCON_R1 = rdata;
+}
+
+static inline void xb_vidcon_set_gr_prio(uint16_t prio)
+{
+	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R1;
+	rdata &= XB_VIDCON_R1_PRIO_GR(XB_VIDCON_PRIO_HI);
+	rdata |= XB_VIDCON_R1_PRIO_GR(prio);
+	*(volatile uint16_t *)XB_VIDCON_R1 = rdata;
+}
+
+static inline void xb_vidcon_set_gp_prio(uint16_t layer, uint16_t prio)
+{
+	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R1;
+	switch (layer)
+	{
+		case 0:
+			rdata &= XB_VIDCON_R1_PRIO_GP0(XB_VIDCON_PRIO_HI);
+			rdata &= XB_VIDCON_R1_PRIO_GP0(prio);
+			break;
+
+		case 1:
+			rdata &= XB_VIDCON_R1_PRIO_GP1(XB_VIDCON_PRIO_HI);
+			rdata &= XB_VIDCON_R1_PRIO_GP1(prio);
+			break;
+
+		case 2:
+			rdata &= XB_VIDCON_R1_PRIO_GP2(XB_VIDCON_PRIO_HI);
+			rdata &= XB_VIDCON_R1_PRIO_GP2(prio);
+			break;
+
+		case 3:
+			rdata &= XB_VIDCON_R1_PRIO_GP3(XB_VIDCON_PRIO_HI);
+			rdata &= XB_VIDCON_R1_PRIO_GP3(prio);
+			break;
+
+		default:
+			break;
+	}
+	*(volatile uint16_t *)XB_VIDCON_R1 = rdata;
+}
+
+// R2
+
+static inline void xb_vidcon_set_layers(uint16_t layer_bits)
+{
+	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R2;
+	rdata &= 0xFF00;
+	rdata |= layer_bits;
+}
+
+static inline void xb_vidcon_set_ys(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_YS;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_ah(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_AH;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_vht(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_VHT;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_exon(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_EXON;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_h_p(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_H_P;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_b_p(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_B_P;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_g_g(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_G_G;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_g_t(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_G_T;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_bon(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_BON;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_son(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_SON;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_ton(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_TON;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_gs4(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_GS4;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_gs3(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_GS3;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_gs2(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_GS2;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_gs1(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_GS1;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
+
+static inline void xb_vidcon_set_gs0(bool val)
+{
+	const uint16_t reg_mask = XB_VIDCON_R2_GS0;
+	if (val) *(volatile uint16_t *)XB_VIDCON_R2 |= reg_mask;
+	else *(volatile uint16_t *)XB_VIDCON_R2 &= ~(reg_mask);
+}
 
 #endif

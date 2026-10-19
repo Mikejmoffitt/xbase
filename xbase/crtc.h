@@ -9,38 +9,7 @@
 //   * Raster Copy
 //   * Control Port
 //
-// Display timing is configured by populating an XBCrtcTimingCfg struct and
-// passing it to xb_crtc_set_timing(). All registers are set at once. It is
-// suggested to configure Vidcon first.
-//
-// It is acceptable to call xb_crtc_set_timing() more than once in order to
-// support multiple configurations.
-//
-// C Example:
-//  void set_crtc(void)
-//  {
-//      XBCrtcTimingCfg crtc_config = { ... }.
-//      xb_crtc_set_timing(&crtc_config);
-//  }
-//
-// ASM Example:
-//
-//  .text
-//  set_crtc:
-//          pea     timing_cfg
-//          jsr     xb_crtc_set_timing
-//          addq.l  #4, sp
-//          rts
-//  .data
-//
-//  timing_cfg:
-//          ds.b bCrtcTimingCfg.len
-//
-// TVRAM and GVRAM scroll planes' scroll is controlled by the CRTC.
-// Edit values in the global scroll configuration array, g_xb_scroll, and
-// then call xb_crtc_set_scroll() to commit values to registers. This allows
-// all registers to be updated in one pass. It is suggested that this is done
-// during the vertical blanking interval.
+// Scroll updates are handled in xbase/util/scroll.h.
 //
 // Raster Copy and Control Port have not yet had support added.
 // TODO: Read Page 224 of Inside X68000 for raster copy.
@@ -134,96 +103,35 @@
 #define XB_CRTC_R20_VSIZE_256  (0x0<<3)
 #define XB_CRTC_R20_VSIZE_512  (0x1<<3)
 #define XB_CRTC_R20_FREQ_31K   SAI_BITVAL(4)
-// Rather than using these below, just call xb_vidcon_get_crtc_r20().
-#define XB_CRTC_R20_COL_16     (0x00<8)
-#define XB_CRTC_R20_COL_256    (0x01<8)
-#define XB_CRTC_R20_COL_65536  (0x03<8)
+// Rather than using these below, call xb_vidcon_update_crtc().
+#define XB_CRTC_R20_COL_16     (0x00<<8)
+#define XB_CRTC_R20_COL_256    (0x01<<8)
+#define XB_CRTC_R20_COL_65536  (0x03<<8)
 #define XB_CRTC_R20_SIZ        SAI_BITVAL(10)
 
-#ifdef __ASSEMBLER__
-	.struct 0
-XBCrtcTimingCfg.htotal:			ds.w 1
-XBCrtcTimingCfg.hsync_length:	ds.w 1
-XBCrtcTimingCfg.hdisp_start:	ds.w 1
-XBCrtcTimingCfg.hdisp_end:		ds.w 1
-XBCrtcTimingCfg.vtotal:			ds.w 1
-XBCrtcTimingCfg.vsync_length:	ds.w 1
-XBCrtcTimingCfg.vdisp_start:	ds.w 1
-XBCrtcTimingCfg.vdisp_end:		ds.w 1
-XBCrtcTimingCfg.ext_h_adjust:	ds.w 1
-XBCrtcTimingCfg.flags:			ds.w 1
-XBCrtcTimingCfg.len:
-#else
-typedef struct XBCrtcTimingCfg
+#ifndef __ASSEMBLER__
+
+// Copies the appropriate bits from Vidcon R0 into CRTC R20.
+static inline void xb_crtc_update_vidcon_bits(uint16_t r20_hibits)
 {
-	// R00 - R08 at 0xE80000
-	uint16_t htotal;        // 1 bit = 8px
-	uint16_t hsync_length;
-	uint16_t hdisp_start;
-	uint16_t hdisp_end;
-	uint16_t vtotal;        // 1 bit = 1 line
-	uint16_t vsync_length;  // "
-	uint16_t vdisp_start;   // "
-	uint16_t vdisp_end;     // "
-	uint16_t ext_h_adjust;
-	// R09 - R19 are not represented here (h-int, scroll registers).
-	uint16_t flags;  // R20
-} XBCrtcTimingCfg;
-#endif
-
-//
-// Scroll Configuration Structures
-//
-
-#ifdef __ASSEMBLER__
-
-// Indexed as x, y
-XBCrtcScrollCfg.text:		ds.w 2
-XBCrtcScrollCfg.gp:
-XBCrtcScrollCfg.gp0:		ds.w 2
-XBCrtcScrollCfg.gp1:		ds.w 2
-XBCrtcScrollCfg.gp2:		ds.w 2
-XBCrtcScrollCfg.gp3:		ds.w 2
-XBCrtcScrollCfg.len:
-
-	.extern	g_xb_scroll
-#else
-typedef struct XBCrtcScrollCfg
-{
-	// { x, y }
-	uint16_t text[2];   // TVRAM
-	union
-	{
-		struct
-		{
-			uint16_t gp0[2];  // GR Page 0
-			uint16_t gp1[2];  // "       1
-			uint16_t gp2[2];  // "       2
-			uint16_t gp3[2];  // "       3
-		};
-		uint16_t gp[8];  // All GVRAM scroll
-	};
-} XBCrtcScrollCfg;
-
-extern XBCrtcScrollCfg g_xb_scroll;
-#endif
+	volatile uint16_t *crtc = (volatile uint16_t *)XB_CRTC_BASE;
+	uint16_t rdata = crtc[20];
+	rdata &= ~(0x07 << 8);
+	rdata |= r20_hibits;
+	crtc[20] = rdata;
+}
 
 //
 // Functions
 //
-#ifndef __ASSEMBLER__
-
-void xb_crtc_init_scroll(void);
-
-void xb_crtc_set_timing(const XBCrtcTimingCfg *c);
 
 static inline void xb_crtc_set_raster_interrupt(uint16_t line)
 {
 	volatile uint16_t *crtc = (volatile uint16_t *)XB_CRTC_BASE;
-	crtc[0x14] = line;
+	crtc[9] = line;
 }
 
-void xb_crtc_update_regs(void);  // Call at vblank.
+
+#endif
 
 // TODO: Raster copy stuff (R21-R23)
-#endif
