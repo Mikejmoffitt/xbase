@@ -5,6 +5,7 @@
 static void apply_mode(const XBDisplayMode *mode)
 {
 	xb_vidcon_set(&mode->vidcon);
+	xb_vidcon_update_regs();
 	xb_crtc_set_timing(&mode->crtc);
 
 #ifdef XB_DISPLAY_512PX_PCG_HACK
@@ -50,4 +51,5 @@ void xb_display_cycle_mode(XBDisplay *d)
 		d->current_mode = 0;
 	}
 	apply_mode(&d->modes[d->current_mode]);
+
 }

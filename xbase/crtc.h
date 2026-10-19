@@ -175,17 +175,6 @@ typedef struct XBCrtcTimingCfg
 // Scroll Configuration Structures
 //
 
-#define XB_CRTC_SCROLL_TEXT_X 0
-#define XB_CRTC_SCROLL_TEXT_Y 1
-#define XB_CRTC_SCROLL_GP0_X 2
-#define XB_CRTC_SCROLL_GP0_Y 3
-#define XB_CRTC_SCROLL_GP1_X 4
-#define XB_CRTC_SCROLL_GP1_Y 5
-#define XB_CRTC_SCROLL_GP2_X 6
-#define XB_CRTC_SCROLL_GP2_Y 7
-#define XB_CRTC_SCROLL_GP3_X 8
-#define XB_CRTC_SCROLL_GP3_Y 9
-
 #ifdef __ASSEMBLER__
 
 // Indexed as x, y

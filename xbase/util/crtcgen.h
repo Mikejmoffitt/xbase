@@ -29,6 +29,7 @@ XBCrtcGenParam.crtc_flags:		ds.w 1
 XBCrtcGenParam.pcg_mode:		ds.w 1
 XBCrtcGenParam.prio:			ds.w 1
 XBCrtcGenParam.vidcon_flags:	ds.w 1
+XBCrtcGenParam.len:
 
 	.global xb_crtcgen_set
 #else

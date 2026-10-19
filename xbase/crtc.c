@@ -20,20 +20,20 @@ void xb_crtc_set_timing(const XBCrtcTimingCfg *c)
 	crtc[7] = c->vdisp_end;
 	crtc[8] = c->ext_h_adjust;
 
-	crtc[0x28/sizeof(uint16_t)] = c->flags;
+	crtc[20] = c->flags;
 }
 
 void xb_crtc_update_regs(void)
 {
 	volatile uint16_t *crtc = (volatile uint16_t *)XB_CRTC_BASE;
-	crtc[0x14] = g_xb_scroll.text[0];
-	crtc[0x16] = g_xb_scroll.text[1];
-	crtc[0x18] = g_xb_scroll.gp0[0];
-	crtc[0x1A] = g_xb_scroll.gp0[1];
-	crtc[0x1C] = g_xb_scroll.gp1[0];
-	crtc[0x1E] = g_xb_scroll.gp1[1];
-	crtc[0x20] = g_xb_scroll.gp2[0];
-	crtc[0x22] = g_xb_scroll.gp2[1];
-	crtc[0x24] = g_xb_scroll.gp3[0];
-	crtc[0x26] = g_xb_scroll.gp3[1];
+	crtc[10] = g_xb_scroll.text[0];
+	crtc[11] = g_xb_scroll.text[1];
+	crtc[12] = g_xb_scroll.gp0[0];
+	crtc[13] = g_xb_scroll.gp0[1];
+	crtc[14] = g_xb_scroll.gp1[0];
+	crtc[15] = g_xb_scroll.gp1[1];
+	crtc[16] = g_xb_scroll.gp2[0];
+	crtc[17] = g_xb_scroll.gp2[1];
+	crtc[18] = g_xb_scroll.gp3[0];
+	crtc[19] = g_xb_scroll.gp3[1];
 }
