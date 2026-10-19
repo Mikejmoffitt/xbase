@@ -1,5 +1,10 @@
 #include	"xbase/xbase.h"
 
+	.global		xb_pal_init
+	.global		xb_pal_poll
+	.global		g_xb_pal
+	.global		g_xb_pal_dirty
+
 	.section	.bss
 ; Bitfield indicating that a palette line needs to be copied
 g_xb_pal_dirty:         ds.l 1
@@ -8,25 +13,19 @@ g_xb_pal:               ds.w XB_PAL_COUNT
 
 	.section	.text
 
-	.global		xb_pal_init
-	.global		xb_pal_poll
-	.global		g_xb_pal
-	.global		g_xb_pal_dirty
-
 ; void xb_pal_init(void);
 xb_pal_init:
 	; Zero out the palette buffer
 	moveq	#0, d0
-	moveq	#XB_PAL_LINE_COUNT-1, d1
+	moveq	#(XB_PAL_COUNT/4)-1, d1
 	lea	g_xb_pal, a0
 init_loop:
-	.rept	(XB_PAL_LINE_SIZE*2)/4
+	.rept	4
 	move.l	d0, (a0)+
 	.endr
 	dbf	d1, init_loop
 	; mark all palettes as in need of a transfer.
-	moveq	#XB_PAL_DIRTY_MASK_FULL, d0
-	move.l	d0, g_xb_pal_dirty
+	move.l	#XB_PAL_DIRTY_MASK_FULL, g_xb_pal_dirty
 	rts
 
 ; void xb_pal_poll(void);
@@ -39,7 +38,7 @@ xb_pal_poll:
 
 	movem.l	POLL_CLOBBER, -(sp)
 
-	moveq	#XB_PAL_LINE_SIZE*2, d2  ; advance offset
+	moveq	#XB_PAL_LINE_SIZE*2, d1  ; advance offset
 	lea	g_xb_pal, a0
 	lea	XB_VIDCON_GP_PAL_BASE, a1
 poll_loop:
@@ -50,12 +49,12 @@ poll_loop:
 	; Copying one whole palette at a time
 	movem.l	(a0)+, d2-d5/a2-a5
 	movem.l	d2-d5/a2-a5, (a1)
-	adda.l	d5, a1  ; dest advance
+	adda.l	d1, a1  ; dest advance
 	bra.s	poll_loop
 
 0:  ; skip source, advance dest, go again
-	adda.l	d5, a0
-	adda.l	d5, a1
+	adda.l	d1, a0
+	adda.l	d1, a1
 	bra.s	poll_loop
 
 poll_loop_done:
