@@ -206,7 +206,7 @@ static inline void xb_vidcon_set_gp_prio(uint16_t layer, uint16_t prio)
 static inline void xb_vidcon_set_layers(uint16_t layer_bits)
 {
 	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R2;
-	rdata &= ~(0xFF);
+	rdata &= 0xFF00;
 	rdata |= layer_bits;
 	*(volatile uint16_t *)XB_VIDCON_R2 = rdata;
 }

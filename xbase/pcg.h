@@ -64,6 +64,12 @@ typedef struct
 #define XB_PCG_MODE_HMODE 0x0001  // Set for 512-dot mode; enables 16x16 tiles.
 #define XB_PCG_MODE_CUT   0x8000  // Disables output (?)
 
+#define XB_PCG_MODE_HSIZE_256 0
+#define XB_PCG_MODE_HSIZE_512 XB_BITVAL(0)
+
+#define XB_PCG_MODE_VSIZE_256 0
+#define XB_PCG_MODE_VSIZE_512 XB_BITVAL(2)
+
 #ifndef __ASSEMBLER__
 
 /*
@@ -100,12 +106,61 @@ static inline void xb_pcg_set_bg0_txsel(uint8_t t);
 static inline void xb_pcg_set_bg1_enable(bool en);
 static inline void xb_pcg_set_bg0_enable(bool en);
 
+// Mode bits
+static inline void xb_pcg_set_mode_line_double(bool dbl)
+{
+	volatile uint16_t *pcg_mode = (volatile uint16_t *)XB_PCG_MODE;
+	uint16_t rdata = *pcg_mode;
+	if (dbl) rdata |= XB_PCG_MODE_LH;
+	else rdata &= ~(XB_PCG_MODE_LH);
+	*pcg_mode = rdata;
+}
+
+static inline void xb_pcg_set_mode_vsize(bool hires)
+{
+	volatile uint16_t *pcg_mode = (volatile uint16_t *)XB_PCG_MODE;
+	uint16_t rdata = *pcg_mode;
+	rdata &= ~(0x03 << 2);
+	if (hires) rdata |= XB_PCG_MODE_VSIZE_512;
+	*pcg_mode = rdata;
+}
+
+static inline void xb_pcg_set_mode_hsize(bool hires)
+{
+	volatile uint16_t *pcg_mode = (volatile uint16_t *)XB_PCG_MODE;
+	uint16_t rdata = *pcg_mode;
+	rdata &= ~(0x03);
+	if (hires) rdata |= XB_PCG_MODE_HSIZE_512;
+	*pcg_mode = rdata;
+}
+
+// Manual timing register manipulation
+static inline void xb_pcg_set_htotal(uint8_t htotal)
+{
+	volatile uint16_t *reg = (volatile uint16_t *)XB_PCG_HTOTAL;
+	*reg = htotal;
+}
+
+static inline void xb_pcg_set_hdisp(uint8_t hdisp)
+{
+	volatile uint16_t *reg = (volatile uint16_t *)XB_PCG_HDISP;
+	*reg = hdisp;
+}
+
+static inline void xb_pcg_set_vdisp(uint8_t vdisp)
+{
+	volatile uint16_t *reg = (volatile uint16_t *)XB_PCG_VDISP;
+	*reg = vdisp;
+}
+
+
+
 // These functions are slower than just working with pointers to PCG_BGx_NAME,
 // but may be helpful for debugging or small changes.
 static inline void xb_pcg_set_bg0_tile(uint16_t x, uint16_t y, uint16_t attr);
 static inline void xb_pcg_set_bg1_tile(uint16_t x, uint16_t y, uint16_t attr);
 
-// Helper functions for putting tiles in PCG VRAM.
+// Helper function for putting tiles in PCG VRAM.
 void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
                               uint16_t num_tiles);
 
@@ -119,21 +174,12 @@ static inline void xb_pcg_set_blank(bool blank)
 {
 	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
 	uint16_t rdata = *pcg_ctrl_r;
-	if (blank) XB_BSET(rdata, 9);
-	else XB_BCLR(rdata, 9);
+	if (blank) XB_BCLR(rdata, 9);
+	else XB_BSET(rdata, 9);
 	*pcg_ctrl_r = rdata;
 }
 
 // Change the mappings for BG1 and BG0 nametables
-static inline void xb_pcg_set_bg1_txsel(uint8_t t)
-{
-	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
-	uint16_t rdata = *pcg_ctrl_r;
-	rdata &= ~(0x0030);
-	rdata |= (t & 0x03) << 4;
-	*pcg_ctrl_r = rdata;
-}
-
 static inline void xb_pcg_set_bg0_txsel(uint8_t t)
 {
 	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
@@ -143,22 +189,31 @@ static inline void xb_pcg_set_bg0_txsel(uint8_t t)
 	*pcg_ctrl_r = rdata;
 }
 
-// Enable or disable BG layer display
-static inline void xb_pcg_set_bg1_enable(bool en)
+static inline void xb_pcg_set_bg1_txsel(uint8_t t)
 {
 	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
 	uint16_t rdata = *pcg_ctrl_r;
-	XB_BCLR(rdata, 3);
-	if (en) XB_BSET(rdata, 3);
+	rdata &= ~(0x0030);
+	rdata |= (t & 0x03) << 4;
 	*pcg_ctrl_r = rdata;
 }
 
+// Enable or disable BG layer display
 static inline void xb_pcg_set_bg0_enable(bool en)
 {
 	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
 	uint16_t rdata = *pcg_ctrl_r;
-	XB_BCLR(rdata, 0);
-	if (en) XB_BSET(rdata, 0);
+	if (en) rdata |= 0x01;
+	else rdata &= ~(0x01);
+	*pcg_ctrl_r = rdata;
+}
+
+static inline void xb_pcg_set_bg1_enable(bool en)
+{
+	volatile uint16_t *pcg_ctrl_r = (volatile uint16_t *)XB_PCG_BG_CTRL;
+	uint16_t rdata = *pcg_ctrl_r;
+	if (en) rdata |= 0x08;
+	else rdata &= ~(0x08);
 	*pcg_ctrl_r = rdata;
 }
 

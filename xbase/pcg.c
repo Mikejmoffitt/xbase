@@ -3,6 +3,8 @@
 
 #include "xbase/memmap.h"
 
+#include <iocs.h>
+
 #include <string.h>
 
 // Scroll registers
@@ -32,11 +34,12 @@ static inline void xb_pcg_set_bg1_yscroll(uint16_t y)
 
 void xb_pcg_init(void)
 {
+	_iocs_sp_init();
 	xb_pcg_set_blank(true);
 	xb_pcg_set_bg0_txsel(0);
 	xb_pcg_set_bg1_txsel(1);
-	xb_pcg_set_bg0_enable(1);
-	xb_pcg_set_bg1_enable(1);
+	xb_pcg_set_bg0_enable(true);
+	xb_pcg_set_bg1_enable(true);
 	xb_pcg_set_bg0_xscroll(0);
 	xb_pcg_set_bg1_xscroll(0);
 	xb_pcg_set_bg0_yscroll(0);
