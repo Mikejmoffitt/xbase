@@ -35,11 +35,11 @@ void xb_pcg_init(void)
 	volatile uint16_t *pcg = (volatile uint16_t *)XB_PCG_HTOTAL;
 	volatile uint16_t *crtc = (volatile uint16_t *)XB_CRTC_BASE;
 	uint16_t mode = crtc[20] & 0xFF;
-	const bool hmode = (mode & XB_PCG_MODE_HMODE) ? true : false;
+//	const bool hmode = (mode & XB_PCG_MODE_HMODE) ? true : false;
 
-	pcg[0] = hmode ? 0xFF : crtc[0];
-	pcg[1] = crtc[2] + 4;
-	pcg[2] = crtc[6];
+//	pcg[0] = hmode ? 0xFF : crtc[0];
+//	pcg[1] = crtc[2] + 4;
+//	pcg[2] = crtc[6];
 	pcg[3] = mode;
 
 	xb_pcg_set_blank(true);
@@ -51,6 +51,5 @@ void xb_pcg_init(void)
 	xb_pcg_set_bg1_xscroll(0);
 	xb_pcg_set_bg0_yscroll(0);
 	xb_pcg_set_bg1_yscroll(0);
-	xb_pcg_clear_sprites();
 	xb_pcg_set_blank(false);
 }

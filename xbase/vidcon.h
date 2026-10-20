@@ -124,6 +124,11 @@
 
 #ifndef __ASSEMBLER__
 
+static inline volatile uint16_t *xb_get_vidcon(void)
+{
+	return (volatile uint16_t *)XB_VIDCON_R0;
+}
+
 // Set all regs at once.
 static inline void xb_vidcon_set(const uint16_t *r)
 {
@@ -142,7 +147,7 @@ static inline void xb_vidcon_update_crtc(void)
 static inline void xb_vidcon_set_col(const uint16_t col)
 {
 	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R0;
-	rdata &= 0x03;
+	rdata &= ~(0x03);
 	rdata |= col;
 	*(volatile uint16_t *)XB_VIDCON_R0 = rdata;
 }
@@ -157,7 +162,7 @@ static inline void xb_vidcon_set_size(bool screen_1024px)
 static inline void xb_vidcon_set_sp_prio(uint16_t prio)
 {
 	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R1;
-	rdata &= XB_VIDCON_R1_PRIO_SP(XB_VIDCON_PRIO_HI);
+	rdata &= ~(XB_VIDCON_R1_PRIO_SP(3));
 	rdata |= XB_VIDCON_R1_PRIO_SP(prio);
 	*(volatile uint16_t *)XB_VIDCON_R1 = rdata;
 }
@@ -165,7 +170,7 @@ static inline void xb_vidcon_set_sp_prio(uint16_t prio)
 static inline void xb_vidcon_set_tx_prio(uint16_t prio)
 {
 	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R1;
-	rdata &= XB_VIDCON_R1_PRIO_TX(XB_VIDCON_PRIO_HI);
+	rdata &= ~(XB_VIDCON_R1_PRIO_TX(3));
 	rdata |= XB_VIDCON_R1_PRIO_TX(prio);
 	*(volatile uint16_t *)XB_VIDCON_R1 = rdata;
 }
@@ -173,7 +178,7 @@ static inline void xb_vidcon_set_tx_prio(uint16_t prio)
 static inline void xb_vidcon_set_gr_prio(uint16_t prio)
 {
 	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R1;
-	rdata &= XB_VIDCON_R1_PRIO_GR(XB_VIDCON_PRIO_HI);
+	rdata &= ~(XB_VIDCON_R1_PRIO_GR(3));
 	rdata |= XB_VIDCON_R1_PRIO_GR(prio);
 	*(volatile uint16_t *)XB_VIDCON_R1 = rdata;
 }
@@ -184,23 +189,23 @@ static inline void xb_vidcon_set_gp_prio(uint16_t layer, uint16_t prio)
 	switch (layer)
 	{
 		case 0:
-			rdata &= XB_VIDCON_R1_PRIO_GP0(XB_VIDCON_PRIO_HI);
-			rdata &= XB_VIDCON_R1_PRIO_GP0(prio);
+			rdata &= ~(XB_VIDCON_R1_PRIO_GP0(3));
+			rdata |= XB_VIDCON_R1_PRIO_GP0(prio);
 			break;
 
 		case 1:
-			rdata &= XB_VIDCON_R1_PRIO_GP1(XB_VIDCON_PRIO_HI);
-			rdata &= XB_VIDCON_R1_PRIO_GP1(prio);
+			rdata &= ~(XB_VIDCON_R1_PRIO_GP1(3));
+			rdata |= XB_VIDCON_R1_PRIO_GP1(prio);
 			break;
 
 		case 2:
-			rdata &= XB_VIDCON_R1_PRIO_GP2(XB_VIDCON_PRIO_HI);
-			rdata &= XB_VIDCON_R1_PRIO_GP2(prio);
+			rdata &= ~(XB_VIDCON_R1_PRIO_GP2(3));
+			rdata |= XB_VIDCON_R1_PRIO_GP2(prio);
 			break;
 
 		case 3:
-			rdata &= XB_VIDCON_R1_PRIO_GP3(XB_VIDCON_PRIO_HI);
-			rdata &= XB_VIDCON_R1_PRIO_GP3(prio);
+			rdata &= ~(XB_VIDCON_R1_PRIO_GP3(3));
+			rdata |= XB_VIDCON_R1_PRIO_GP3(prio);
 			break;
 
 		default:
@@ -214,8 +219,9 @@ static inline void xb_vidcon_set_gp_prio(uint16_t layer, uint16_t prio)
 static inline void xb_vidcon_set_layers(uint16_t layer_bits)
 {
 	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R2;
-	rdata &= 0xFF00;
+	rdata &= ~(0xFF);
 	rdata |= layer_bits;
+	*(volatile uint16_t *)XB_VIDCON_R2 = rdata;
 }
 
 static inline void xb_vidcon_set_ys(bool val)

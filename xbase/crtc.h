@@ -111,10 +111,15 @@
 
 #ifndef __ASSEMBLER__
 
+static inline volatile uint16_t *xb_get_crtc(void)
+{
+	return (volatile uint16_t *)XB_CRTC_BASE;
+}
+
 // Copies the appropriate bits from Vidcon R0 into CRTC R20.
 static inline void xb_crtc_update_vidcon_bits(uint16_t r20_hibits)
 {
-	volatile uint16_t *crtc = (volatile uint16_t *)XB_CRTC_BASE;
+	volatile uint16_t *crtc = xb_get_crtc();
 	uint16_t rdata = crtc[20];
 	rdata &= ~(0x07 << 8);
 	rdata |= r20_hibits;
@@ -127,7 +132,7 @@ static inline void xb_crtc_update_vidcon_bits(uint16_t r20_hibits)
 
 static inline void xb_crtc_set_raster_interrupt(uint16_t line)
 {
-	volatile uint16_t *crtc = (volatile uint16_t *)XB_CRTC_BASE;
+	volatile uint16_t *crtc = xb_get_crtc();
 	crtc[9] = line;
 }
 

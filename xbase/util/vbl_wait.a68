@@ -40,8 +40,6 @@ xb_vbl_wait_init:
 xb_vbl_wait:
 	st	s_vbl_wait_flag
 0:
-	stop	#$2000
-	; TODO: use stop?
 	tst.b	s_vbl_wait_flag
 	bne.s	0b
 	rts

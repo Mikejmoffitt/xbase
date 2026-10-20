@@ -20,14 +20,14 @@ typedef struct XBKeys
 	uint16_t key_r;  // Next read index
 
 	// Key repeat state
-	uint8_t repeat_key;      // Key name for currently repeating key
+	int16_t repeat_key;     // Currently repeating key
 	int16_t repeat_cnt;     // Counter that increments when key is held
 	int16_t repeat_delay;   // Delay setting
 	int16_t repeat_period;  // Repeat rate setting
 
 	// Key sensitivity list
 	uint16_t sense_list_size;
-	uint8_t sense_list[XB_KEY_LIST_TERMINATE];
+	int16_t sense_list[XB_KEY_COUNT];
 } XBKeys;
 
 static XBKeys s_keys;
@@ -176,13 +176,13 @@ static const XBKeyID kkey_table[] =
 // Key state helpers
 //
 
-static inline bool key_is_held(uint8_t key)
+static inline bool key_is_held(int16_t key)
 {
 	const XBKeyID *id = &kkey_table[key];
 	return s_keys.key_bits[id->group] & id->mask;
 }
 
-static inline bool key_posedge(uint8_t key)
+static inline bool key_posedge(int16_t key)
 {
 	const XBKeyID *id = &kkey_table[key];
 	const bool now = s_keys.key_bits[id->group] & id->mask;
@@ -190,7 +190,7 @@ static inline bool key_posedge(uint8_t key)
 	return now && !prev;
 }
 
-static inline bool key_negedge(uint8_t key)
+static inline bool key_negedge(int16_t key)
 {
 	const XBKeyID *id = &kkey_table[key];
 
@@ -203,7 +203,7 @@ static inline bool key_negedge(uint8_t key)
 // Initialization and Configuration
 //
 
-void xb_keys_init(const uint8_t *sense_list)
+void xb_keys_init(const int16_t *sense_list)
 {
 	memset(&s_keys, 0, sizeof(s_keys));
 	xb_keys_set_repeat(-1, -1);
@@ -211,7 +211,7 @@ void xb_keys_init(const uint8_t *sense_list)
 
 	if (sense_list == NULL)
 	{
-		for (uint8_t i = 0; i < XB_KEY_LIST_TERMINATE; i++)
+		for (uint8_t i = 0; i < XB_KEY_COUNT; i++)
 		{
 			s_keys.sense_list[i] = i;
 		}
@@ -238,7 +238,7 @@ void xb_keys_set_repeat(int16_t delay, int16_t rate)
 	s_keys.repeat_period = rate;
 }
 
-static inline void event_push(uint8_t key, bool repeat, bool key_up)
+static inline void event_push(int16_t key, bool repeat, bool key_up)
 {
 	const uint16_t next_w = (s_keys.key_w + 1) % XB_ARRAYSIZE(s_keys.key_events);
 	if (next_w == s_keys.key_r) return;  // Queue full.
@@ -271,7 +271,7 @@ void xb_keys_poll(void)
 	// Generate events
 	for (uint16_t i = 0; i < s_keys.sense_list_size; i++)
 	{
-		const uint8_t key = s_keys.sense_list[i];
+		const int16_t key = s_keys.sense_list[i];
 		const bool posedge = key_posedge(key);
 		const bool negedge = key_negedge(key);
 		if (!posedge && !negedge) continue;
@@ -320,19 +320,19 @@ bool xb_keys_event_pop(XBKeyEvent *out)
 }
 
 // Returns true if the key is currently held down.
-bool xb_key_on(uint8_t key)
+bool xb_key_on(int16_t key)
 {
 	return key_is_held(key);
 }
 
 // Returns true if the key was just pressed in the last polling period.
-bool xb_key_down(uint8_t key)
+bool xb_key_down(int16_t key)
 {
 	return key_posedge(key);
 }
 
 // Retruns true if the key was just released in the last polling period.
-bool xb_key_up(uint8_t key)
+bool xb_key_up(int16_t key)
 {
 	return key_negedge(key);
 }

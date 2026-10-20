@@ -142,7 +142,7 @@
 
 	XB_ENUMEND
 
-#define XB_KEY_LIST_TERMINATE 0xFF
+#define XB_KEY_LIST_TERMINATE -1
 
 #define XB_KEY_MOD_SHIFT     XB_BITVAL(0)  // Shift was held during this event.
 #define XB_KEY_MOD_CTRL      XB_BITVAL(1)  // Control was held during this event.
@@ -152,19 +152,19 @@
 // Struct representing a key event (key down / up).
 #ifdef __ASSEMBLER__
 	.struct 0
-XBKeyEvent.name:        ds.b 1
-XBKeyEvent.modifiers:   ds.b 1
+XBKeyEvent.name:        ds.w 1
+XBKeyEvent.modifiers:   ds.w 1
 XBKeyEvent.len:
 #else
 typedef struct XBKeyEvent
 {
-	uint8_t name;
-	uint8_t modifiers;
+	int16_t name;
+	uint16_t modifiers;
 } XBKeyEvent;
 #endif  // __ASSEMBLER__
 
 #ifndef __ASSEMBLER__
-typedef uint8_t XBKey;
+typedef uint16_t XBKey;
 #endif  // __ASSEMBLER__
 
 //
@@ -186,7 +186,7 @@ typedef uint8_t XBKey;
 // should be scanned for key up/down event generation. The list is terminated
 // with an XB_KEY_INVALID entry.
 // Passing in NULL will default to all keys being scanned.
-void xb_keys_init(const uint8_t *sense_list);
+void xb_keys_init(const int16_t *sense_list);
 
 // Set the key repeat delay and rate in terms of poll() periods.
 // Pass a number <= 0 to reset to the default value.
@@ -209,10 +209,10 @@ bool xb_keys_event_pop(XBKeyEvent *out);
 //
 
 // Returns true if the key is currently held down.
-bool xb_key_on(uint8_t key);
+bool xb_key_on(int16_t key);
 // Returns true if the key was just pressed in the last polling period.
-bool xb_key_down(uint8_t key);
+bool xb_key_down(int16_t key);
 // Retruns true if the key was just released in the last polling period.
-bool xb_key_up(uint8_t key);
+bool xb_key_up(int16_t key);
 
 #endif

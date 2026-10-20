@@ -105,15 +105,6 @@ static inline void xb_pcg_set_bg0_enable(bool en);
 static inline void xb_pcg_set_bg0_tile(uint16_t x, uint16_t y, uint16_t attr);
 static inline void xb_pcg_set_bg1_tile(uint16_t x, uint16_t y, uint16_t attr);
 
-// Clears all sprites.
-void xb_pcg_clear_sprites(void);
-
-// Optional interface for placing sprites without regard to slot number.
-void xb_pcg_add_sprite(const XBSprite *spr);
-
-// Finishes sprite list and transfers data to PCG. Should be called in Vblank.
-void xb_pcg_finish_sprites(void);
-
 // Helper functions for putting tiles in PCG VRAM.
 void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
                               uint16_t num_tiles);
