@@ -113,8 +113,7 @@
 #define XB_VIDCON_R2_GS1       XB_BITVAL(0x1)
 #define XB_VIDCON_R2_GS0       XB_BITVAL(0x0)
 
-#define XB_VIDCON_R2_ALL_ON    (XB_VIDCON_R2_BON | \
-                                XB_VIDCON_R2_SON | \
+#define XB_VIDCON_R2_ALL_ON    (XB_VIDCON_R2_SON | \
                                 XB_VIDCON_R2_TON | \
                                 XB_VIDCON_R2_GS4 | \
                                 XB_VIDCON_R2_GS3 | \
@@ -137,25 +136,13 @@ static inline void xb_vidcon_set(const uint16_t *r)
 	*(volatile uint16_t *)XB_VIDCON_R2 = r[2];
 }
 
-// Updates CRTC and PCG registers accordingly.
-static inline void xb_vidcon_update_crtc(void)
+// Updates R0 based on CRTC config.
+static inline void xb_vidcon_set_crtc_regs(void)
 {
-	xb_crtc_update_vidcon_bits(((*(const volatile uint16_t *)XB_VIDCON_R0) & 0x7) << 8);
-}
+	volatile uint16_t *crtc_regs = (volatile uint16_t *)XB_CRTC_BASE;
+	const uint16_t mode = crtc_regs[20];
 
-// R0 adjustments. Be sure to update CRTC R20 using xb_vidcon_get_crtc_r20!
-static inline void xb_vidcon_set_col(const uint16_t col)
-{
-	uint16_t rdata = *(volatile uint16_t *)XB_VIDCON_R0;
-	rdata &= ~(0x03);
-	rdata |= col;
-	*(volatile uint16_t *)XB_VIDCON_R0 = rdata;
-}
-
-static inline void xb_vidcon_set_size(bool screen_1024px)
-{
-	if (screen_1024px) *(volatile uint16_t *)XB_VIDCON_R0 |= XB_VIDCON_R0_SIZ;
-	else *(volatile uint16_t *)XB_VIDCON_R0 &= ~(XB_VIDCON_R0_SIZ);
+	*(volatile uint16_t *)XB_VIDCON_R0 = mode >> 8;
 }
 
 // R1 : Priority

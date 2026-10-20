@@ -11,8 +11,9 @@ XB_SOURCES_ASM := \
 #
 
 XB_SOURCES_C := \
-	$(XB)/xbase/mfp.c \
+	$(XB)/xbase/crtc.c \
 	$(XB)/xbase/pcg.c \
+	$(XB)/xbase/mfp.c \
 	$(XB)/xbase/keys.c \
 	$(XB)/xbase/util/scroll.c \
 	$(XB)/xbase/util/xspman.c \

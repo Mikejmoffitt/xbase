@@ -19,6 +19,8 @@
 
 #include "xbase/macro.h"
 #include "xbase/memmap.h"
+#include "xbase/pcg.h"
+#include "xbase/vidcon.h"
 
 #ifndef __ASSEMBLER__
 #include <stdint.h>
@@ -29,7 +31,7 @@
 //
 
 //
-// R00-R07 calculations, from Inside X68000:
+// R00-R07 calculations, from Inside X68000 (Write only):
 //
 
 //
@@ -60,7 +62,7 @@
 //
 
 //
-// R20: Flags
+// R20: Flags (R/W)
 //
 // fedc ba98 7654 3210
 // .... .zcc ...f vvhh
@@ -100,29 +102,132 @@
 #define XB_CRTC_R20_HSIZE_256  (0x0<<0)
 #define XB_CRTC_R20_HSIZE_512  (0x1<<0)
 #define XB_CRTC_R20_HSIZE_768  (0x2<<0)
-#define XB_CRTC_R20_VSIZE_256  (0x0<<3)
-#define XB_CRTC_R20_VSIZE_512  (0x1<<3)
-#define XB_CRTC_R20_FREQ_31K   SAI_BITVAL(4)
+#define XB_CRTC_R20_HSIZE_NG   (0x3<<0)
+
+#define XB_CRTC_R20_VSIZE_256  (0x0<<2)
+#define XB_CRTC_R20_VSIZE_512  (0x1<<2)
+
+#define XB_CRTC_R20_FREQ_15K   0
+#define XB_CRTC_R20_FREQ_31K   XB_BITVAL(4)
 // Rather than using these below, call xb_vidcon_update_crtc().
 #define XB_CRTC_R20_COL_16     (0x00<<8)
 #define XB_CRTC_R20_COL_256    (0x01<<8)
+#define XB_CRTC_R20_COL_NG     (0x02<<8)
 #define XB_CRTC_R20_COL_65536  (0x03<<8)
-#define XB_CRTC_R20_SIZ        SAI_BITVAL(10)
+#define XB_CRTC_R20_SIZ_512    0
+#define XB_CRTC_R20_SIZ_1024   XB_BITVAL(10)
 
 #ifndef __ASSEMBLER__
+
+extern uint16_t g_xb_crtc_regs[9];  // Shadow of the timing registers.
 
 static inline volatile uint16_t *xb_get_crtc(void)
 {
 	return (volatile uint16_t *)XB_CRTC_BASE;
 }
 
-// Copies the appropriate bits from Vidcon R0 into CRTC R20.
-static inline void xb_crtc_update_vidcon_bits(uint16_t r20_hibits)
+// Updates registers downstream of CRTC. Call after setting a mode.
+static inline void xb_crtc_disseminate_regs(void)
+{
+	xb_vidcon_set_crtc_regs();
+	xb_pcg_set_crtc_regs();
+}
+
+// Sets the horizontal scan registers, and if appropriate,
+static inline void xb_crtc_set_h(uint16_t r0, uint16_t r1, uint16_t r2, uint16_t r3)
+{
+	volatile uint16_t *crtc = xb_get_crtc();
+	g_xb_crtc_regs[0] = r0;
+	g_xb_crtc_regs[1] = r1;
+	g_xb_crtc_regs[2] = r2;
+	g_xb_crtc_regs[3] = r3;
+	for (uint16_t i = 0; i < 4; i++)
+	{
+		crtc[i] = g_xb_crtc_regs[i];
+	}
+}
+
+// Vertical scan.
+static inline void xb_crtc_set_v(uint16_t r4, uint16_t r5, uint16_t r6, uint16_t r7)
+{
+	volatile uint16_t *crtc = xb_get_crtc();
+	g_xb_crtc_regs[4] = r4;
+	g_xb_crtc_regs[5] = r5;
+	g_xb_crtc_regs[6] = r6;
+	g_xb_crtc_regs[7] = r7;
+	for (uint16_t i = 4; i < 8; i++)
+	{
+		crtc[i] = g_xb_crtc_regs[i];
+	}
+}
+
+// Horizontal Adjust.
+static inline void xb_crtc_set_hadj(uint16_t r8)
+{
+	volatile uint16_t *crtc = xb_get_crtc();
+	g_xb_crtc_regs[8] = r8;
+	crtc[8] = g_xb_crtc_regs[8];
+}
+
+// Screen configuration.
+static inline void xb_crtc_set_flags(uint16_t r20)
+{
+	volatile uint16_t *crtc = xb_get_crtc();
+	crtc[20] = r20;
+}
+
+//
+// R20 specific configuration. After updating remember to call
+// xb_crtc_disseminate_regs() for the sake of downstream ICs.
+//
+
+// Set active area width. Use XB_CRTC_R20_HSIZE_*.
+static inline void xb_crtc_set_hsize(uint16_t hsize)
 {
 	volatile uint16_t *crtc = xb_get_crtc();
 	uint16_t rdata = crtc[20];
-	rdata &= ~(0x07 << 8);
-	rdata |= r20_hibits;
+	rdata &= ~(0x03 << 0);
+	rdata |= hsize;
+	crtc[20] = rdata;
+}
+
+// Set active area height. Use XB_CRTC_R20_VSIZE_*.
+static inline void xb_crtc_set_vsize(uint16_t vsize)
+{
+	volatile uint16_t *crtc = xb_get_crtc();
+	uint16_t rdata = crtc[20];
+	if (vsize) rdata |= XB_CRTC_R20_VSIZE_512;
+	else rdata &= ~(XB_CRTC_R20_VSIZE_512);
+	crtc[20] = rdata;
+}
+
+// Sets line doubler on/off. Use XB_CRTC_R20_FREQ_31K.
+static inline void xb_crtc_set_freq(uint16_t freq)
+{
+	volatile uint16_t *crtc = xb_get_crtc();
+	uint16_t rdata = crtc[20];
+	if (freq) rdata |= XB_CRTC_R20_FREQ_31K;
+	else rdata &= ~(XB_CRTC_R20_FREQ_31K);
+	crtc[20] = rdata;
+}
+
+// Updates color mode. Use XB_CRTC_R20_COL_*
+static inline void xb_crtc_set_col(uint16_t col)
+{
+	volatile uint16_t *crtc = xb_get_crtc();
+	uint16_t rdata = crtc[20];
+	rdata &= ~(0x03 << 8);
+	rdata |= col;
+	crtc[20] = rdata;
+}
+
+// Updates plane size.
+static inline void xb_crtc_set_siz(uint16_t siz)
+{
+	volatile uint16_t *crtc = xb_get_crtc();
+	uint16_t rdata = crtc[20];
+	if (siz) rdata |= XB_CRTC_R20_SIZ_1024;
+	else rdata &= ~(XB_CRTC_R20_SIZ_1024);
 	crtc[20] = rdata;
 }
 

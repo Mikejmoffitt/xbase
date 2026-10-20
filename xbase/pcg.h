@@ -109,6 +109,9 @@ static inline void xb_pcg_set_bg1_tile(uint16_t x, uint16_t y, uint16_t attr);
 void xb_pcg_transfer_pcg_data(const void *source, uint16_t dest_tile,
                               uint16_t num_tiles);
 
+// Sets PCG registers based on CRTC (for custom modes).
+void xb_pcg_set_crtc_regs(void);
+
 // Static implementations ======================================================
 
 // Set to CPU(1) or display(0)
