@@ -12,6 +12,7 @@
 #include "xbase/pcg.h"
 #include "xbase/vidcon.h"
 
+#include "xbase/util/fade.h"
 #include "xbase/util/fixed.h"
 #include "xbase/util/scroll.h"
 #include "xbase/util/vbl_wait.h"

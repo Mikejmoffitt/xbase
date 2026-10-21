@@ -1,0 +1,259 @@
+#include	"xbase/util/fade.h"
+#include	"xbase/macro.h"
+#include	"xbase/pal.h"
+
+	.section	.bss
+s_fade_cmd:            ds.w FadeCmd.len*XB_PAL_LINE_COUNT/2
+
+	.section	.text
+
+fade_pal_black:
+	.rept	16
+	dc.w	XB_PAL888(0x00, 0x00, 0x00)
+	.endr
+fade_pal_white:
+	.rept	16
+	dc.w	XB_PAL888(0xFF, 0xFF, 0xFF)
+	.endr
+
+	.global	xb_fade_init
+xb_fade_init:
+	lea	s_fade_cmd, a0
+	moveq	#0, d0
+	moveq	#(XB_PAL_LINE_COUNT*FadeCmd.len/(4*2))-1, d1
+0:
+	.rept	2
+	move.l	d0, (a0)+
+	.endr
+	dbf	d1, 0b
+	rts
+
+; d0.w = s_fade_cmd offset
+; d1.1 = (speed<<16) | (fade op offset)
+; a0.l = target palette
+; 
+	.global	xb_fade_set
+xb_fade_set:
+	lea	s_fade_cmd, a1
+	adda.w	d0, a1
+	move.w	d1, FadeCmd.op(a1)
+	swap	d1
+	move.l	a0, FadeCmd.target(a1)
+	move.b	d1, FadeCmd.speed(a1)
+	swap	d1  ; This lets GCC hang on to the value of d1 for another call.
+	rts
+
+	.global	xb_fade_active
+xb_fade_active:
+	moveq	#0, d0
+	lea	s_fade_cmd, a1
+	.rept	XB_PAL_LINE_COUNT-1
+	or.w	FadeCmd.op(a1), d0
+	addq	#FadeCmd.len, a1
+	.endr
+	rts
+
+#define FADE_POLL_CLOBBER d3-d6/d7/a3
+
+	.global	xb_fade_poll
+xb_fade_poll:
+	movem.l	FADE_POLL_CLOBBER, -(sp)
+	lea	g_xb_pal, a0
+	lea	s_fade_cmd, a1
+	lea	xb_fade_poll_sub(pc), a3
+
+	moveq	#0, d5  ; return value (activity)
+
+.macro	FADE_EXEC dirtybit
+	jsr	(a3)
+	beq.s	0f
+	ori.w	#XB_BITVAL(\dirtybit), d5
+0:
+	.endm
+
+	; GR
+	FADE_EXEC 0
+	FADE_EXEC 1
+	FADE_EXEC 2
+	FADE_EXEC 3
+	FADE_EXEC 4
+	FADE_EXEC 5
+	FADE_EXEC 6
+	FADE_EXEC 7
+	FADE_EXEC 8
+	FADE_EXEC 9
+	FADE_EXEC 10
+	FADE_EXEC 11
+	FADE_EXEC 12
+	FADE_EXEC 13
+	FADE_EXEC 14
+	FADE_EXEC 15
+	; TX/SP
+	swap	d5
+	FADE_EXEC 0
+	FADE_EXEC 1
+	FADE_EXEC 2
+	FADE_EXEC 3
+	FADE_EXEC 4
+	FADE_EXEC 5
+	FADE_EXEC 6
+	FADE_EXEC 7
+	FADE_EXEC 8
+	FADE_EXEC 9
+	FADE_EXEC 10
+	FADE_EXEC 11
+	FADE_EXEC 12
+	FADE_EXEC 13
+	FADE_EXEC 14
+	FADE_EXEC 15
+	swap	d5
+	or.l	d5, g_xb_pal_dirty
+	move.w	d5, d0
+	movem.l	(sp)+, FADE_POLL_CLOBBER
+	rts
+
+
+; d0.w = fade op
+; a0.l = g_xb_pal position for current struct
+; a1.l = FadeCmd struct
+;
+; advances a0 to next palette region
+; advances a1 to next FadeCmd struct
+; clobbers d2-d4, d7, a2, which takes current target pal
+; d4 is set if palette line is dirty
+xb_fade_poll_sub:
+	moveq	#0, d4    ; tracks if fade is complete.
+	; early exit if inactive
+	move.w	FadeCmd.op(a1), d0
+	beq.s	xb_fade_poll_sub_skip
+	; early exit if in delay state
+	subq.b	#1, FadeCmd.cnt(a1)
+	bpl.s	xb_fade_poll_sub_skip
+	; refresh speed timer
+	move.b	FadeCmd.speed(a1), d1
+	lsr.b	#4, d1
+	move.b	d1, FadeCmd.cnt(a1)
+
+	jmp	op_jptbl(pc, d0.w)
+op_jptbl:
+	bra.w	xb_fade_poll_sub_skip
+	bra.w	op_step
+	bra.w	op_from_black
+	bra.w	op_to_black
+	bra.w	op_from_white
+	bra.w	op_to_white
+
+xb_fade_poll_sub_skip:
+	lea	XB_PAL_LINE_SIZE*2(a0), a0
+xb_fade_poll_sub_done:
+	addq	#FadeCmd.len, a1
+	tst.w	d4
+	rts
+
+op_from_white:
+	move.w	#XB_PAL555($1F, $1F, $1F), d0
+	bra.s	op_from_fill
+op_from_black:
+	moveq	#XB_PAL555($00, $00, $00), d0
+op_from_fill:
+	; Set palette line to fully one color
+	moveq	#1, d4  ; dirty
+	moveq	#((XB_PAL_LINE_SIZE*2)/(4*2))-1, d1
+0:
+	.rept	2
+	move.l	d0, (a0)+
+	.endr
+	dbf	d1, 0b
+	; From the next poll on it's a normal fade step.
+	move.w	#XB_FADE_OP_STEP*4, FadeCmd.op(a1)
+	bra.s	xb_fade_poll_sub_done
+
+op_to_black:
+	move.l	#fade_pal_black, FadeCmd.target(a1)
+	bra.s	op_to_join
+op_to_white:
+	move.l	#fade_pal_white, FadeCmd.target(a1)
+op_to_join:
+	move.w	#XB_FADE_OP_STEP*4, FadeCmd.op(a1)
+	; fall-through to op_step
+
+op_step:
+	movea.l	FadeCmd.target(a1), a2
+	moveq	#XB_PAL_LINE_SIZE-1, d7
+
+op_step_top:
+	move.w	(a0), d2  ; current state
+	move.w	(a2)+, d3  ; target state
+
+	cmp.w	d2, d3
+	beq.w	op_step_next
+
+	move.b	FadeCmd.speed(a1), d6
+	andi.w	#$000F, d6
+	add.w	d6, d6
+
+	moveq	#0, d0
+	moveq	#0, d1
+
+; d2:      current palette entry value
+; d3:      target palette entry value
+; d6:      step magnitude
+; mask:    channel mask
+; stepval: channel step value
+.macro	OP_STEP_CHANNEL	mask
+	move.w	d2, d0
+	move.w	d3, d1
+
+	andi.w	#\mask, d0
+	andi.w	#\mask, d1
+
+	cmp.w	d0, d1      ; current vs target?
+	beq.s	9f          ; --> target matches
+	bcs.s	6f          ; --> target is lesser
+;
+; Target is greater (add)
+;
+	moveq	#1, d4  ; mark dirty
+	add.w	d6, d0  ; add step
+	cmp.l	d0, d1  ; current vs target ?
+	bgt.s	0f      ; --> target is still greater
+	move.w	d1, d0  ; adopt target
+0:
+	bra.s	8f      ; --> done
+
+;
+; Target is lesser (sub)
+;
+6:
+	moveq	#1, d4  ; mark dirty
+	sub.w	d6, d0  ; sub step
+	cmp.l	d0, d1  ; current vs target ?
+	blt.s	0f      ; --> target is still lesser
+	move.w	d1, d0  ; adopt target
+0:
+	; bra.s	8f      ; --> done
+8:
+	; Bring in changed data
+	andi.w	#$FFFF^\mask, d2
+	or.w	d0, d2
+9:
+	lsl.w	#5, d6
+	.endm
+
+COMPONENT_MASK = $1F
+
+	OP_STEP_CHANNEL	(COMPONENT_MASK << 1)
+	OP_STEP_CHANNEL	(COMPONENT_MASK << 6)
+	OP_STEP_CHANNEL	(COMPONENT_MASK << 11)
+
+op_step_next:
+	move.w	d2, (a0)+
+	dbf	d7, op_step_top
+	tst.w	d4
+	bne.w	xb_fade_poll_sub_done
+	; If the fade had no effect, it's done.
+	moveq	#0, d0
+	move.l	d0, (a1)
+	move.l	d0, 4(a1)
+
+	bra.w	xb_fade_poll_sub_done

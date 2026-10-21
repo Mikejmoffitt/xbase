@@ -7,6 +7,7 @@ XB_SOURCES_ASM := \
 	$(XB)/xbase/joy.a68 \
 	$(XB)/xbase/ipl.a68 \
 	$(XB)/xbase/opm_commit.a68 \
+	$(XB)/xbase/util/fade.a68 \
 	$(XB)/xbase/util/vbl_wait.a68 \
 #
 
