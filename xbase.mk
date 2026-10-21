@@ -17,7 +17,6 @@ XB_SOURCES_C := \
 	$(XB)/xbase/mfp.c \
 	$(XB)/xbase/keys.c \
 	$(XB)/xbase/util/scroll.c \
-	$(XB)/xbase/util/xspman.c \
 #
 
 XB_OBJECTS_C   := $(patsubst $(XB)/%.c,$(XBOBJDIR)/%.o,$(XB_SOURCES_C))

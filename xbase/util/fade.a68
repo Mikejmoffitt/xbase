@@ -188,6 +188,7 @@ op_step_top:
 	cmp.w	d2, d3
 	beq.w	op_step_next
 
+	moveq	#0, d6
 	move.b	FadeCmd.speed(a1), d6
 	andi.w	#$000F, d6
 	add.w	d6, d6
@@ -214,7 +215,7 @@ op_step_top:
 ; Target is greater (add)
 ;
 	moveq	#1, d4  ; mark dirty
-	add.w	d6, d0  ; add step
+	add.l	d6, d0  ; add step
 	cmp.l	d0, d1  ; current vs target ?
 	bgt.s	0f      ; --> target is still greater
 	move.w	d1, d0  ; adopt target
@@ -226,7 +227,7 @@ op_step_top:
 ;
 6:
 	moveq	#1, d4  ; mark dirty
-	sub.w	d6, d0  ; sub step
+	sub.l	d6, d0  ; sub step
 	cmp.l	d0, d1  ; current vs target ?
 	blt.s	0f      ; --> target is still lesser
 	move.w	d1, d0  ; adopt target
