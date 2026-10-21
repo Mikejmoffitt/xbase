@@ -95,6 +95,11 @@ Mode:       0xEB0810
 // Configuration data is taken from the CRTC.
 void xb_pcg_init(void);
 
+static inline volatile XBSprite *xb_pcg_get(uint16_t no)
+{
+	return &((volatile XBSprite *)XB_PCG_SPR_TABLE)[no];
+}
+
 // Turn off the display for faster transfer.
 static inline void xb_pcg_set_blank(bool blank);
 
