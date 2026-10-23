@@ -1,9 +1,9 @@
 	#include	"xbase/xbase.h"
 
 	.section	.bss
-	.global		g_xb_joystate
+	.global		g_xb_joy
 
-g_xb_joystate:		ds.b XBJoy.len*XB_JOY_COUNT
+g_xb_joy:		ds.b XBJoy.len*XB_JOY_COUNT
 
 	.section	.text
 	
@@ -15,7 +15,7 @@ g_xb_joystate:		ds.b XBJoy.len*XB_JOY_COUNT
 xb_joy_init:
 	moveq	#0, d0
 	moveq	#XB_JOY_MODE_STANDARD, d1
-	lea	g_xb_joystate, a0
+	lea	g_xb_joy, a0
 	.rept	XB_JOY_COUNT
 	move.w	d1, (a0)+  ; set mode field
 	move.l	d0, (a0)+  ; clear out state
@@ -26,7 +26,7 @@ xb_joy_init:
 // Samples inputs and calculates edges. Call before game logic.
 ; void xb_joy_poll(void)
 xb_joy_poll:
-	lea	g_xb_joystate, a0
+	lea	g_xb_joy, a0
 	lea	XB_JOY_BASE, a1
 	bsr.b	joy_poll_sub
 	lea	XBJoy.len(a0), a0

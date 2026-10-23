@@ -155,10 +155,11 @@ static inline void xb_crtc_set_v(uint16_t r4, uint16_t r5, uint16_t r6, uint16_t
 	g_xb_crtc_regs[5] = r5;
 	g_xb_crtc_regs[6] = r6;
 	g_xb_crtc_regs[7] = r7;
-	for (uint16_t i = 4; i < 8; i++)
-	{
-		crtc[i] = g_xb_crtc_regs[i];
-	}
+	crtc[4] = r4;
+//	for (uint16_t i = 0; i < 4; i++)
+//	{
+//		crtc[i+4] = g_xb_crtc_regs[i+4];
+//	}
 }
 
 // Horizontal Adjust.

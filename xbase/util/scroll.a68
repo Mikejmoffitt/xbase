@@ -1,0 +1,32 @@
+#include "xbase/util/scroll.h"
+#include "xbase/memmap.h"
+
+	.section	.bss
+
+	.global	g_xb_scroll
+	.align	2
+g_xb_scroll:           ds.b XBScroll.size
+
+	.section	.text
+	.global	xb_scroll_init
+xb_scroll_init:
+	lea	g_xb_scroll, a0
+	moveq	#0, d0
+	moveq	#(XBScroll.size/4)-1, d1
+0:
+	move.l	d0, (a0)+
+	dbf	d1, 0b
+	rts
+
+	.global	xb_scroll_poll
+xb_scroll_poll:
+	lea	g_xb_scroll, a0
+	lea	XB_CRTC_BASE+$14, a1  ; R10
+	.rept	5
+	move.l	(a0)+, (a1)+
+	.endr
+	lea	XB_PCG_BG0_XSCRL, a1
+	.rept	2
+	move.l	(a0)+, (a1)+
+	.endr
+	rts

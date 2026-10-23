@@ -12,7 +12,7 @@ joypad, as well as generate variables which indicate a positive or negative
 edge for each button (to detect the instant of a press or release).
 
 Button data for both players is accessible through the XBJoy array
-called g_xb_joystate. Data is valid after calling xb_joy_poll().
+called g_xb_joy. Data is valid after calling xb_joy_poll().
 
 While the standard configuration as described before is the most typical, some
 other controller variants exist:
@@ -102,6 +102,8 @@ The default mode is XB_JOY_MODE_STANDARD.
 #define XB_BTN_Y      XB_BITVAL(XB_BTN_Y_BIT)
 #define XB_BTN_Z      XB_BITVAL(XB_BTN_Z_BIT)
 
+#define XB_BTN_ANY (XB_BTN_A|XB_BTN_B|XB_BTN_START|XB_BTN_SELECT)
+
 #define XB_JOY_MODE_STANDARD 0x00
 #define XB_JOY_MODE_6BUTTON  0x01
 
@@ -118,7 +120,7 @@ XBJoy.pos:             ds.w 1
 XBJoy.neg:             ds.w 1
 XBJoy.len:
 
-	.extern	g_xb_joystate
+	.extern	g_xb_joy
 #else
 typedef struct XBJoy
 {
@@ -129,7 +131,7 @@ typedef struct XBJoy
 	uint16_t neg;   // Newly released buttons.
 } XBJoy;
 
-extern XBJoy g_xb_joystate[XB_JOY_COUNT];
+extern XBJoy g_xb_joy[XB_JOY_COUNT];
 #endif
 
 #ifdef __ASSEMBLER__

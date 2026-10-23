@@ -8,6 +8,7 @@
 
 #ifdef __ASSEMBLER__
 // Indexed as x, y
+	.struct	0
 XBScroll.tx:        ds.w 2
 XBScroll.gp:
 XBScroll.gp0:       ds.w 2
@@ -17,7 +18,7 @@ XBScroll.gp3:       ds.w 2
 XBScroll.bg:
 XBScroll.bg0:       ds.w 2
 XBScroll.bg1:       ds.w 2
-XBScroll.len:
+XBScroll.size:
 
 	.extern	g_xb_scroll
 
