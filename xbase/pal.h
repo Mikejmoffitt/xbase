@@ -105,11 +105,20 @@ static inline void xb_pal_load(uint16_t dest, const void *src, uint16_t count)
 
 	const uint32_t *src32 = (const uint32_t *)(src);
 	uint32_t *dest32 = (uint32_t *)(&g_xb_pal[pal_offs]);
+
 	uint32_t dirty_bit_mark = XB_BITVAL(dest);
 
 	while (count--)
 	{
-		*dest32++ = *src32++;
+		if (dest >= XB_PAL_SP)
+		{
+			*dest32++ = (*src32++) & 0x0000FFFF;
+		}
+		else
+		{
+			*dest32++ = *src32++;
+		}
+
 		*dest32++ = *src32++;
 		*dest32++ = *src32++;
 		*dest32++ = *src32++;
@@ -119,6 +128,7 @@ static inline void xb_pal_load(uint16_t dest, const void *src, uint16_t count)
 		*dest32++ = *src32++;
 		g_xb_pal_dirty |= dirty_bit_mark;
 		dirty_bit_mark <<= 1;
+		dest++;
 	}
 }
 
