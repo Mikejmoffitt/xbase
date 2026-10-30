@@ -4,7 +4,7 @@ CC := $(XB_ENV)/human68k-gcc
 OBJCOPY := $(XB_ENV)/human68k-objcopy
 
 # C build flags
-CFLAGS := -std=c11 -O2 -Wall -Werror -I$(SRCDIR) -I$(XB) -I.
+CFLAGS := -std=c11 -O1 -Wall -I$(SRCDIR) -I$(XB) -I.
 CFLAGS += -fcall-used-d2 -fcall-used-a2  # Compatibility with XSP.
 CFLAGS += -mcpu=68000
 CFLAGS += -fomit-frame-pointer
@@ -18,6 +18,7 @@ CFLAGS += -fno-web -fno-unit-at-a-time
 CFLAGS += -fno-strict-aliasing
 CFLAGS += -falign-functions=2 -flimit-function-alignment
 CFLAGS += -fno-tree-loop-optimize
+CFLAGS += -fno-lto
 # TODO: Define X68000 memory map as extern uint8_t arrays and have linker
 # properly point them to the correct locations.
 # TODO: array-bounds and stringop-overflow are bugged on GCC 11.2.0

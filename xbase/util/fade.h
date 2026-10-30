@@ -69,31 +69,34 @@ static inline void xb_fade_to_white(uint16_t line, uint16_t speed, uint16_t line
 extern void xb_fade_set(void);  // fade.a68
 static inline void xb_fade_to(uint16_t line, const void *target, uint16_t speed, uint16_t lines)
 {
+	const uint8_t *src = (const uint8_t *)target;
 	for (uint16_t i = 0; i < lines; i++)
 	{
 		register uint16_t d0 __asm__("d0") = line * sizeof(FadeCmd);
 		register uint32_t d1 __asm__("d1") = (speed << 16) | (XB_FADE_OP_STEP * 4);
-		register const void *a0 __asm__("a0") = target;
-		__asm__ __volatile__ ("jsr xb_fade_set"
+		register const void *a0 __asm__("a0") = src;
+		__asm__ __volatile__ ("jbsr xb_fade_set"
 		              :
 		              : "d" (d0), "d" (d1), "a" (a0)
-		              : "a1", "memory", "cc");
-		target = (uint8_t *)(target)+sizeof(uint16_t)*XB_PAL_LINE_SIZE;
+		              : "a1", "d2", "a2", "memory", "cc");
+		src += sizeof(uint16_t)*XB_PAL_LINE_SIZE;
 		line++;
 	}
 }
 
 static inline void xb_fade_from_black(uint16_t line, const void *target, uint16_t speed, uint16_t lines)
 {
+	const uint8_t *src = (const uint8_t *)target;
 	for (uint16_t i = 0; i < lines; i++)
 	{
 		register uint16_t d0 __asm__("d0") = line * sizeof(FadeCmd);
 		register uint32_t d1 __asm__("d1") = (speed << 16) | (XB_FADE_OP_FROM_BLACK * 4);
-		register const void *a0 __asm__("a0") = target;
-		__asm__ __volatile__ ("jsr xb_fade_set"
+		register const void *a0 __asm__("a0") = src;
+		__asm__ __volatile__ ("jbsr xb_fade_set"
 		              :
 		              : "d" (d0), "d" (d1), "a" (a0)
-		              : "a1", "memory", "cc");
+		              : "a1", "d2", "a2", "memory", "cc");
+		src += sizeof(uint16_t)*XB_PAL_LINE_SIZE;
 		line++;
 	}
 }
@@ -105,10 +108,10 @@ static inline void xb_fade_to_black(uint16_t line, uint16_t speed, uint16_t line
 		register uint16_t d0 __asm__("d0") = line * sizeof(FadeCmd);
 		register uint32_t d1 __asm__("d1") = (speed << 16) | (XB_FADE_OP_TO_BLACK * 4);
 		register const void *a0 __asm__("a0") = NULL;  // ignored value
-		__asm__ __volatile__ ("jsr xb_fade_set"
+		__asm__ __volatile__ ("jbsr xb_fade_set"
 		              :
 		              : "d" (d0), "d" (d1), "a" (a0)
-		              : "a1", "memory", "cc");
+		              : "a1", "d2", "a2", "memory", "cc");
 		line++;
 	}
 }
@@ -120,10 +123,10 @@ static inline void xb_fade_from_white(uint16_t line, const void *target, uint16_
 		register uint16_t d0 __asm__("d0") = line * sizeof(FadeCmd);
 		register uint32_t d1 __asm__("d1") = (speed << 16) | (XB_FADE_OP_FROM_WHITE * 4);
 		register const void *a0 __asm__("a0") = target;
-		__asm__ __volatile__ ("jsr xb_fade_set"
+		__asm__ __volatile__ ("jbsr xb_fade_set"
 		              :
 		              : "d" (d0), "d" (d1), "a" (a0)
-		              : "a1", "memory", "cc");
+		              : "a1", "d2", "a2", "memory", "cc");
 		line++;
 	}
 }
@@ -135,10 +138,10 @@ static inline void xb_fade_to_white(uint16_t line, uint16_t speed, uint16_t line
 		register uint16_t d0 __asm__("d0") = line * sizeof(FadeCmd);
 		register uint32_t d1 __asm__("d1") = (speed << 16) | (XB_FADE_OP_TO_WHITE * 4);
 		register const void *a0 __asm__("a0") = NULL;  // ignored value
-		__asm__ __volatile__ ("jsr xb_fade_set"
+		__asm__ __volatile__ ("jbsr xb_fade_set"
 		              :
 		              : "d" (d0), "d" (d1), "a" (a0)
-		              : "a1", "memory", "cc");
+		              : "a1", "d2", "a2", "memory", "cc");
 		line++;
 	}
 }
