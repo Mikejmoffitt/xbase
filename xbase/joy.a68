@@ -1,5 +1,8 @@
 	#include	"xbase/xbase.h"
 
+#define REPEAT_DELAY 15
+#define REPEAT_RATE  2
+
 	.section	.bss
 	.global		g_xb_joy
 
@@ -36,17 +39,16 @@ xb_joy_poll:
 ; a0 = sub
 ; a1 = input base
 joy_poll_sub:
+	move.w	XBJoy.now(a0), d2
+;
+; Data In
+;
 	moveq	#0, d0
-	move.w	XBJoy.now(a0), d1
-	move.w	d1, XBJoy.prev(a0)
-	move.b	(a1), d0
+	move.b	(a1), d0  ; read from hardware port
 	not.b	d0
-
 ;	tst.w	XBJoy.mode(a0)
 ;	bne.w	sample_sixbutton  TODO
-
 	; Read extended buttons based on illegal switch combos
-	swap	d1  ; preserve previous
 	move.w	d0, d1
 	andi.w	#XB_BTN_UP | XB_BTN_DOWN, d1
 	cmpi.w	#XB_BTN_UP | XB_BTN_DOWN, d1
@@ -61,18 +63,54 @@ joy_poll_sub:
 	ori.w	#XB_BTN_START, d0
 	andi.w	#~(XB_BTN_LEFT | XB_BTN_RIGHT), d0
 1:
-	swap	d1  ; bring back previous
-	; Generate edges
-	move.w	d0, d2
 	move.w	d0, XBJoy.now(a0)
+;
+; Edge Update
+;
+	move.w	d2, XBJoy.prev(a0)
+	swap	d0
+	move.w	d2, d0  ; now in upper, prev in lower
+	move.l	d0, d2  ; back up
+	move.l	d0, d1
+	swap	d1      ; now in lower
+
+;
+; Key Repeat capture
+;
+	cmp.w	d0, d1
+	beq.s	0f
+; different key
+	move.w	d1, XBJoy.rept_data(a0)
+	clr.w	XBJoy.rept_cnt(a0)
+	bra.s	1f
+0:
+; same key
+	addq.w	#1, XBJoy.rept_cnt(a0)
+1:
+;
+; Negative Edge
+;
 	not.w	d1
 	and.w	d1, d0
-	move.w	d0, XBJoy.pos(a0)
-
-	move.w	d2, d0
-	move.w	XBJoy.prev(a0), d0
-	not.w	d0
-	and.w	d0, d1
-	move.w	d1, XBJoy.neg(a0)
+	move.w	d0, XBJoy.neg(a0)
+;
+; Positive edge
+;
+	move.l	d2, d1  ; now/prev copy from before
+	swap	d2
+	not.w	d1
+	and.w	d1, d2
+	move.w	d2, XBJoy.pos(a0)
+;
+; Key Repeat Out. d2.w is still pos
+;
+	move.w	XBJoy.rept_cnt(a0), d1  ; counting?
+	cmpi.w	#REPEAT_DELAY, d1
+	bne.s	0f
+	subq.w	#REPEAT_RATE, d1  ; retrigger
+	move.w	d1, XBJoy.rept_cnt(a0)
+	or.w	XBJoy.rept_data(a0), d2  ; pos | rept
+0:
+	move.w	d2, XBJoy.pos_r(a0)
 
 	rts

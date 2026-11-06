@@ -121,11 +121,6 @@
 
 extern uint16_t g_xb_crtc_regs[9];  // Shadow of the timing registers.
 
-static inline volatile uint16_t *xb_get_crtc(void)
-{
-	return (volatile uint16_t *)XB_CRTC_BASE;
-}
-
 // Updates registers downstream of CRTC. Call after setting a mode.
 static inline void xb_crtc_disseminate_regs(void)
 {
@@ -136,45 +131,41 @@ static inline void xb_crtc_disseminate_regs(void)
 // Sets the horizontal scan registers, and if appropriate,
 static inline void xb_crtc_set_h(uint16_t r0, uint16_t r1, uint16_t r2, uint16_t r3)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
 	g_xb_crtc_regs[0] = r0;
 	g_xb_crtc_regs[1] = r1;
 	g_xb_crtc_regs[2] = r2;
 	g_xb_crtc_regs[3] = r3;
 	for (uint16_t i = 0; i < 4; i++)
 	{
-		crtc[i] = g_xb_crtc_regs[i];
+		v_crtc[i] = g_xb_crtc_regs[i];
 	}
 }
 
 // Vertical scan.
 static inline void xb_crtc_set_v(uint16_t r4, uint16_t r5, uint16_t r6, uint16_t r7)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
 	g_xb_crtc_regs[4] = r4;
 	g_xb_crtc_regs[5] = r5;
 	g_xb_crtc_regs[6] = r6;
 	g_xb_crtc_regs[7] = r7;
-	crtc[4] = r4;
+	v_crtc[4] = r4;
 //	for (uint16_t i = 0; i < 4; i++)
 //	{
-//		crtc[i+4] = g_xb_crtc_regs[i+4];
+//		v_crtc[i+4] = g_xb_crtc_regs[i+4];
 //	}
 }
 
 // Horizontal Adjust.
 static inline void xb_crtc_set_hadj(uint16_t r8)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
 	g_xb_crtc_regs[8] = r8;
-	crtc[8] = g_xb_crtc_regs[8];
+	v_crtc[8] = g_xb_crtc_regs[8];
 }
 
 // Screen configuration.
 static inline void xb_crtc_set_flags(uint16_t r20)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
-	crtc[20] = r20;
+	v_crtc[20] = r20;
 }
 
 //
@@ -185,51 +176,46 @@ static inline void xb_crtc_set_flags(uint16_t r20)
 // Set active area width. Use XB_CRTC_R20_HSIZE_*.
 static inline void xb_crtc_set_hsize(uint16_t hsize)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
-	uint16_t rdata = crtc[20];
+	uint16_t rdata = v_crtc[20];
 	rdata &= ~(0x03 << 0);
 	rdata |= hsize;
-	crtc[20] = rdata;
+	v_crtc[20] = rdata;
 }
 
 // Set active area height. Use XB_CRTC_R20_VSIZE_*.
 static inline void xb_crtc_set_vsize(uint16_t vsize)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
-	uint16_t rdata = crtc[20];
+	uint16_t rdata = v_crtc[20];
 	if (vsize) rdata |= XB_CRTC_R20_VSIZE_512;
 	else rdata &= ~(XB_CRTC_R20_VSIZE_512);
-	crtc[20] = rdata;
+	v_crtc[20] = rdata;
 }
 
 // Sets line doubler on/off. Use XB_CRTC_R20_FREQ_31K.
 static inline void xb_crtc_set_freq(uint16_t freq)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
-	uint16_t rdata = crtc[20];
+	uint16_t rdata = v_crtc[20];
 	if (freq) rdata |= XB_CRTC_R20_FREQ_31K;
 	else rdata &= ~(XB_CRTC_R20_FREQ_31K);
-	crtc[20] = rdata;
+	v_crtc[20] = rdata;
 }
 
 // Updates color mode. Use XB_CRTC_R20_COL_*
 static inline void xb_crtc_set_col(uint16_t col)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
-	uint16_t rdata = crtc[20];
+	uint16_t rdata = v_crtc[20];
 	rdata &= ~(0x03 << 8);
 	rdata |= col;
-	crtc[20] = rdata;
+	v_crtc[20] = rdata;
 }
 
 // Updates plane size.
 static inline void xb_crtc_set_siz(uint16_t siz)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
-	uint16_t rdata = crtc[20];
+	uint16_t rdata = v_crtc[20];
 	if (siz) rdata |= XB_CRTC_R20_SIZ_1024;
 	else rdata &= ~(XB_CRTC_R20_SIZ_1024);
-	crtc[20] = rdata;
+	v_crtc[20] = rdata;
 }
 
 //
@@ -238,8 +224,7 @@ static inline void xb_crtc_set_siz(uint16_t siz)
 
 static inline void xb_crtc_set_raster_interrupt(uint16_t line)
 {
-	volatile uint16_t *crtc = xb_get_crtc();
-	crtc[9] = line;
+	v_crtc[9] = line;
 }
 
 

@@ -118,17 +118,23 @@ XBJoy.now:             ds.w 1
 XBJoy.prev:            ds.w 1
 XBJoy.pos:             ds.w 1
 XBJoy.neg:             ds.w 1
+XBJoy.rept_data:       ds.w 1
+XBJoy.rept_cnt:        ds.w 1
+XBJoy.pos_r:           ds.w 1
 XBJoy.len:
 
 	.extern	g_xb_joy
 #else
 typedef struct XBJoy
 {
-	uint16_t mode;  // XBJoyMode
-	uint16_t now;   // The current data.
-	uint16_t prev;  // The previous sampling period's data.
-	uint16_t pos;   // Newly pressed buttons.
-	uint16_t neg;   // Newly released buttons.
+	uint16_t mode;       // XBJoyMode
+	uint16_t now;        // The current data.
+	uint16_t prev;       // The previous sampling period's data.
+	uint16_t pos;        // Newly pressed buttons.
+	uint16_t neg;        // Newly released buttons.
+	uint16_t rept_data;  // Repeat state.
+	uint16_t rept_cnt;   // Repeat timer.
+	uint16_t pos_r;      // Newly pressed buttons, or repeated inputs.
 } XBJoy;
 
 extern XBJoy g_xb_joy[XB_JOY_COUNT];

@@ -27,3 +27,9 @@
 
 #define XB_OPM_BASE            0xE90000
 #define XB_JOY_BASE            0xE9A001
+
+#ifndef __ASSEMBLER__
+#define v_gvram ((volatile uint16_t *)(XB_GVRAM_BASE))
+#define v_tvram ((volatile uint16_t *)(XB_TVRAM_BASE))
+#define v_crtc ((volatile uint16_t *)(XB_CRTC_BASE))
+#endif  // __ASSEMBLER__
