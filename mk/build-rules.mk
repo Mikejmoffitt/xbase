@@ -18,12 +18,12 @@ $(XBOBJDIR)/%.o: $(XB)/%.a68
 # Application Sources
 #
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(SOURCES_H) prebuild
+$(OBJDIR)/%.o: %.c $(SOURCES_H) prebuild
 	@mkdir -p $(@D)
 	@bash -c 'printf "\t\e[96m[  C  ]\e[0m $<\n"'
 	$(CC) $(CFLAGS) $< -c -o $@
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.a68 $(SOURCES_H) prebuild
+$(OBJDIR)/%.o: %.a68 $(SOURCES_H) prebuild
 	@mkdir -p $(@D)
 	@bash -c 'printf "\t\e[95m[ ASM ]\e[0m $<\n"'
 	gawk '{gsub(/;/,";#"); printf("%s", $$0 RT)}' RS='"[^"]*"' $< | gawk '{gsub(/\$$/,"0x"); printf("%s", $$0 RT)}' RS='"[^"]*"' | $(AS) $(ASFLAGS) -o $@ -c -
