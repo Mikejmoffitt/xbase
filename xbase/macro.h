@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef __ASSEMBLER__
+#include <stdint.h>
+#endif  // __ASSEMBLER__
+
 //
 // Bilingual enums, with strict limits
 //
@@ -86,5 +90,32 @@ static inline void xb_ei(void)
 	.macro	xb_clc
 	andi.b	#0xFE, ccr
 	.endm
+
+#endif  // __ASSEMBLER__
+
+// Endianness (for portability)
+
+#ifndef __ASSEMBLER__
+
+static inline uint16_t xb_endian_swap_w(uint16_t in)
+{
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	return ((in & 0xFF00) >> 8) | ((in & 0xFF) << 8);
+#else
+	return in;
+#endif
+}
+
+static inline uint32_t xb_endian_swap_l(uint32_t in)
+{
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	const uint16_t hiword = (in >> 16) & 0xFFFF;
+	const uint16_t loword = in & 0xFFFF;
+	return (xb_endian_swap_w(hiword)<<16) |
+	       (xb_endian_swap_w(loword));
+#else
+	return in;
+#endif
+}
 
 #endif  // __ASSEMBLER__

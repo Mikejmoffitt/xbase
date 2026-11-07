@@ -123,11 +123,6 @@
 
 #ifndef __ASSEMBLER__
 
-static inline volatile uint16_t *xb_get_vidcon(void)
-{
-	return (volatile uint16_t *)XB_VIDCON_R0;
-}
-
 // Set all regs at once.
 static inline void xb_vidcon_set(const uint16_t *r)
 {

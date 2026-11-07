@@ -19,9 +19,9 @@
 typedef struct FadeCmd
 {
 	uint16_t op;  // Op * 4 for jump table
+	const uint16_t *target;  // Target 16-color palette
 	uint8_t speed;
 	uint8_t cnt;
-	const uint16_t *target;  // Target 16-color palette
 } FadeCmd;
 
 #else
@@ -42,7 +42,7 @@ void xb_fade_init(void);
 
 // Step fade for one frame. Returns bitfield of fade channels that made changes.
 // Call this *before* vertical blank.
-uint16_t xb_fade_poll(void);
+uint32_t xb_fade_poll(void);
 
 // Returns true if a fade is in progress.
 bool xb_fade_active(void);

@@ -226,14 +226,14 @@ static inline void xb_pcg_set_bg1_enable(bool en)
 // small changes or playing around, as it's slower than doing a large DMA.
 static inline void xb_pcg_set_bg0_tile(uint16_t x, uint16_t y, uint16_t attr)
 {
-	volatile uint16_t *nt = (volatile uint16_t *)XB_PCG_BG0_NAME;
+	volatile uint16_t *nt = v_pcg_bg0_name;
 	nt += XB_PCG_BG_OFFS(x, y)/sizeof(uint16_t);
 	*nt = attr;
 }
 
 static inline void xb_pcg_set_bg1_tile(uint16_t x, uint16_t y, uint16_t attr)
 {
-	volatile uint16_t *nt = (volatile uint16_t *)XB_PCG_BG1_NAME;
+	volatile uint16_t *nt = v_pcg_bg1_name;
 	nt += XB_PCG_BG_OFFS(x, y)/sizeof(uint16_t);
 	*nt = attr;
 }
