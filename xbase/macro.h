@@ -111,8 +111,8 @@ static inline uint32_t xb_endian_swap_l(uint32_t in)
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	const uint16_t hiword = (in >> 16) & 0xFFFF;
 	const uint16_t loword = in & 0xFFFF;
-	return (xb_endian_swap_w(hiword)<<16) |
-	       (xb_endian_swap_w(loword));
+	return (xb_endian_swap_w(loword)<<16) |
+	       (xb_endian_swap_w(hiword));
 #else
 	return in;
 #endif
