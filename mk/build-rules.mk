@@ -33,7 +33,7 @@ $(OBJDIR)/%.o: %.a68 $(SOURCES_H) prebuild
 #
 
 $(PROJECT_OUTPUT): $(XB_OBJECTS_ASM) $(XB_OBJECTS_C) $(OBJECTS_ASM) $(OBJECTS_C)
-	@bash -c 'printf "\t\e[94m[ LNK ]\e[0m $(OBJECTS_ASM) $(OBJECTS_C)\n"'
+	@bash -c 'printf "\t\e[94m[ LNK ]\e[0m $^\n"'
 	$(CC) -o $(APPNAME).bin $(LDFLAGS) $(CFLAGS) $^ $(LIBS)
 	mkdir -p $(@D)
 	$(OBJCOPY) -v -O xfile $(APPNAME).bin $@ > /dev/null

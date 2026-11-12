@@ -30,7 +30,7 @@
 
 #ifndef __ASSEMBLER__
 #define v_gvram        ((volatile uint16_t *)(XB_GVRAM_BASE))
-#define v_tvram        ((volatile uint16_t *)(XB_TVRAM_BASE))
+#define v_tvram         ((volatile uint8_t *)(XB_TVRAM_BASE))
 #define v_crtc         ((volatile uint16_t *)(XB_CRTC_BASE))
 #define v_pcg_bg0_name ((volatile uint16_t *)(XB_PCG_BG0_NAME))
 #define v_pcg_bg1_name ((volatile uint16_t *)(XB_PCG_BG1_NAME))
